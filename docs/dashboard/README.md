@@ -68,16 +68,23 @@ ARIBA EPP
 
 ## 2. Role-Based Dashboard Files Index
 
-To ensure strict least privilege and intuitive user experience, each role receives a customized dashboard and filtered sidebar visibility:
+The current product model uses Platform → Parent Group → Company → Site → Endpoint scope. The role list below follows the owner-updated product requirements. Detailed write permissions are **not finalized**: `PERMISSION-MATRIX.md` names these roles in its summary, but its granular tables still use the older Org Admin / SOC L1 / SOC L2 columns. Until that matrix is reconciled, hide or disable role-specific mutation controls; do not infer grants.
 
 | Role | Specification File | Primary Scope & Responsibilities |
 |---|---|---|
-| **Platform Administrator** | [`PLATFORM-ADMIN-DASHBOARD.md`](PLATFORM-ADMIN-DASHBOARD.md) | Platform health, aggregate organization/fleet metadata, tenant lifecycle; no raw customer endpoint browsing. |
-| **Organization Administrator** | [`ORG-ADMIN-DASHBOARD.md`](ORG-ADMIN-DASHBOARD.md) | Own-tenant endpoint/site/user administration and enrollment. |
-| **Security Administrator** | [`SECURITY-ADMIN-DASHBOARD.md`](SECURITY-ADMIN-DASHBOARD.md) | Assigned-scope policy/rule review; signing and enforcement follow approved workflows. |
-| **SOC Analyst L1 (Triage)** | [`SOC-ANALYST-L1-DASHBOARD.md`](SOC-ANALYST-L1-DASHBOARD.md) | Assigned-scope alert review; state-changing triage depends on ADR-013. |
-| **SOC Analyst L2 / Responder** | [`SOC-ANALYST-L2-DASHBOARD.md`](SOC-ANALYST-L2-DASHBOARD.md) | Assigned-scope investigation; response controls unavailable pending ADR-014. |
-| **Auditor & Viewer** | [`AUDITOR-VIEWER-DASHBOARD.md`](AUDITOR-VIEWER-DASHBOARD.md) | Separate scoped read-only audit and aggregate viewer experiences; no certification claim. |
+| **Platform Super Admin** | [`PLATFORM-ADMIN-DASHBOARD.md`](PLATFORM-ADMIN-DASHBOARD.md) | Platform operations and tenant onboarding; no routine customer telemetry/file access. |
+| **Group Administrator** | [`GROUP-ADMIN-DASHBOARD.md`](GROUP-ADMIN-DASHBOARD.md) | Parent-group companies, users and aggregate security posture. |
+| **Group SOC Lead** | [`GROUP-SOC-LEAD-DASHBOARD.md`](GROUP-SOC-LEAD-DASHBOARD.md) | Parent-group alert oversight and cross-company rollups; company evidence remains permission-scoped. |
+| **Company Administrator** | [`COMPANY-ADMIN-DASHBOARD.md`](COMPANY-ADMIN-DASHBOARD.md) | Own company users, sites, endpoints and enrollment. |
+| **Company SOC Analyst** | [`COMPANY-SOC-ANALYST-DASHBOARD.md`](COMPANY-SOC-ANALYST-DASHBOARD.md) | Own-company alert triage and investigation; actions remain separately gated. |
+| **Unit / Site Administrator** | [`SITE-ADMIN-DASHBOARD.md`](SITE-ADMIN-DASHBOARD.md) | Local endpoint enrollment and health within one assigned site. |
+| **Security Administrator** | [`SECURITY-ADMIN-DASHBOARD.md`](SECURITY-ADMIN-DASHBOARD.md) | Assigned Group/Company policy and rule workflows. |
+| **Security Auditor** | [`AUDITOR-VIEWER-DASHBOARD.md`](AUDITOR-VIEWER-DASHBOARD.md) | Read-only audit within explicitly assigned Group/Company scope. |
+| **Executive Viewer** | [`AUDITOR-VIEWER-DASHBOARD.md`](AUDITOR-VIEWER-DASHBOARD.md) | Aggregate posture within assigned Group/Company scope. |
+
+### Legacy role pages
+
+`ORG-ADMIN-DASHBOARD.md`, `SOC-ANALYST-L1-DASHBOARD.md` and `SOC-ANALYST-L2-DASHBOARD.md` use the previous role taxonomy. They are retained as source/history only, not as the active role/permission contract; use the Group/Company pages above.
 
 ---
 
@@ -88,19 +95,21 @@ To ensure strict least privilege and intuitive user experience, each role receiv
 3. **Illustrative Data in Staging:** Sample counts and graphs in documentation/mockups are strictly labeled as illustrative; synthetic data only until real lab telemetry is ingested.
 4. **Multilingual Support:** Bangla (`bn-BD`) and English (`en-US`) are proposed; exact release and localization acceptance criteria remain To confirm.
 
-## 4. Role-based access matrix (UI mapping; server-side enforcement required)
+## 4. Role-based access map (UI mapping; server-side enforcement required)
 
-The role pages define UI affordances, not a second permission system. Map every control to the canonical [`PERMISSION-MATRIX.md`](../security/PERMISSION-MATRIX.md); that contract defines the granular codes and server-side behavior. The summary below is only a navigation guide. Any mutation requires its explicit server-side permission and an audit event. Tenant scope comes from authenticated identity, never from a client-selected organization ID.
+The role pages define UI affordances, not a second permission system. Map every control to the canonical [`PERMISSION-MATRIX.md`](../security/PERMISSION-MATRIX.md); that contract must first add granular columns for the current hierarchy. Until then, the following are scope descriptions only—not executable permission grants. Any mutation requires an explicit server-side permission and an audit event. Tenant scope comes from authenticated identity, never from a client-selected organization ID.
 
 | Role | Scope / key permissions | UI behavior and guardrail |
 |---|---|---|
-| Platform Administrator | Platform scope; `org:create/update/suspend`, `endpoint:read` (GLOBAL), `health:view`, `audit:read` | Platform and aggregate views; endpoint metadata only when authorized/audited; no raw customer telemetry/files by default |
-| Organization Administrator | Own organization; `site:manage`, `user:manage`, `user:assign_role`, `token:generate/revoke`, `endpoint:read/update/retire`, `health:view` | Tenant-only administration; never grant platform role or cross-organization access |
-| Security Administrator | Assigned organization/sites; `policy:read/create/sign/assign/rollback`, `rule:manage`, scoped `alert:read/false_positive`, `ioc:manage`, `feed:sync`, `response:scan` | Policy/rule controls follow approved workflow; Release 1 scans require permission, scope confirmation and audit; no disruptive response |
-| SOC Analyst L1 | Assigned organization/sites; `endpoint:read`, `health:view`, `alert:read/triage/false_positive`, `incident:create/read`, `ioc:read`, `response:scan` | Read-only endpoint evidence; triage waits for ADR-013; supported Release 1 scans are separately permissioned/audited; no disruptive response |
-| SOC Analyst L2 / Responder | Assigned organization/sites; investigation permissions plus `incident:close`, `response:view`, `response:scan`; disruptive `response:* [A]` | Scans are separate from disruptive actions; disruptive requests require Release 2 and ADR-014; no direct execution/bypass |
-| Auditor | Assigned organization; `audit:read/export`, scoped read permissions in canonical matrix | Read-only, tenant-scoped; export is separately permissioned and itself audited; no compliance claim by UI alone |
-| Viewer | Assigned organization; `incident:read`, `vuln:read`, `policy:compliance`, `report:executive` as allowed | Aggregated read-only views; no raw event, user, file, command-line or response details |
+| Platform Super Admin | Global platform scope | Platform operations and parent-organization lifecycle; no routine raw customer evidence |
+| Group Administrator | One parent organization and its companies | Group-level rollups and company administration; exact writes await canonical granular RBAC mapping |
+| Group SOC Lead | One parent organization; company rollup | Group-level alert overview; per-company evidence only where explicitly granted |
+| Company Administrator | One subsidiary company and its sites | Company fleet/user/site administration; no other company access |
+| Company SOC Analyst | One company and assigned sites | Company alert review/triage; state changes depend on ADR-013 and RBAC mapping |
+| Unit / Site Administrator | One assigned site | Local enrollment/health views; all writes require explicit site-scoped permissions |
+| Security Administrator | Assigned Group or Company scope | Policy/rule/scan tools only when release and granular permissions permit |
+| Security Auditor | Assigned Group or Company scope | Read-only scoped audit; export separately permissioned and audited |
+| Executive Viewer | Assigned Group or Company scope | Aggregate read-only posture; no raw event/user/file/command-line data |
 
 If the permission contract changes, update it first and then align these pages; do not broaden access to match a menu mockup.
 
@@ -139,6 +148,7 @@ Metric examples in role documents are illustrative only. Do not show a green “
 
 - [ ] Product owner approves navigation scope for the selected release.
 - [ ] Role permission matrix is approved and mapped to API permissions.
+- [ ] Canonical permission matrix has granular permissions for Group Admin, Group SOC Lead, Company Admin, Company SOC Analyst and Site Admin; legacy role columns are removed or explicitly mapped.
 - [ ] Alert state transitions are resolved in ADR-013 before triage mutation is built.
 - [ ] Decide whether incident cases are a separate Release 1 entity/workflow or remain part of alert investigation.
 - [ ] No disruptive response control is enabled until ADR-014 and one action's recovery/test plan are approved.

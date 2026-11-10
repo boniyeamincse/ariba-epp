@@ -1,5 +1,7 @@
 # Ariba EPP — SOC Analyst L2 & Incident Responder Dashboard
 
+> **Legacy role taxonomy:** the current role model uses Company SOC Analyst and Group SOC Lead; it does not yet define L1/L2 role grants. Use [Company SOC Analyst Dashboard](COMPANY-SOC-ANALYST-DASHBOARD.md) and [Group SOC Lead Dashboard](GROUP-SOC-LEAD-DASHBOARD.md) as proposed current views. This file is historical workflow input only; do not implement its permissions or controls.
+
 **Role:** SOC Analyst L2 / Incident Responder  
 **Security Boundary:** Deep Investigation & Guarded Response  
 **Specification File:** `docs/dashboard/SOC-ANALYST-L2-DASHBOARD.md`  
@@ -29,7 +31,7 @@ ARIBA EPP
 ├── Detection & Response
 │   ├── Alerts (Full investigative detail & evidence links)
 │   ├── Incident Cases (standalone case lifecycle To confirm; priority/SLA definitions also To confirm)
-│   ├── Investigation (Interactive process tree, timeline & forensic query)
+│   ├── Investigation (Release 1 process/event timeline from collected data; historical query builder is Release 3 / P2)
 │   └── Response Actions (Release 2; read-only status view only if approved; no command control)
 ├── Protection
 │   └── Malware Scanning (Release 1; scan request only if supported, authorized and audited)

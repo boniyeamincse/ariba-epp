@@ -28,7 +28,7 @@ ARIBA EPP
 │   ├── YARA Rules (Release 1 author/compile/test via `yara:manage`; deployment not granted by this permission)
 │   └── Threat Feeds (MISP; Release 2 / planned)
 ├── Policy Management (Release 1; draft, review, signed rollout status)
-└── Reports (Policy drift, enforcement exceptions & compliance reports)
+└── Reports (Release 3 / P2 candidate; hide until report definitions and permissions are approved; no compliance claim)
 ```
 
 ---

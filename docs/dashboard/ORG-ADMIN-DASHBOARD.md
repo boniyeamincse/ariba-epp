@@ -1,5 +1,7 @@
 # Ariba EPP — Organization Administrator Dashboard
 
+> **Legacy role taxonomy:** current product roles are Platform Super Admin, Group Admin, Company Admin, Company SOC Analyst and Unit/Site Admin. Use [Company Administrator Dashboard](COMPANY-ADMIN-DASHBOARD.md) for the current Company role. This file is retained as historical source only; do not implement its role grants.
+
 **Role:** Organization Administrator  
 **Security Boundary:** Single Tenant (`organization_id` strictly enforced)  
 **Specification File:** `docs/dashboard/ORG-ADMIN-DASHBOARD.md`  

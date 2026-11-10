@@ -1,15 +1,15 @@
 # Ariba EPP — Platform Administrator Dashboard
 
-**Role:** Platform Administrator (Super Admin)  
+**Role:** Platform Super Admin
 **Security Boundary:** Global Multi-Tenant (System-wide)  
-**Specification File:** `docs/dashboard/PLATFORM-ADMIN-DASHBOARD.md`  
+**Specification File:** `docs/dashboard/PLATFORM-ADMIN-DASHBOARD.md`
 
 **Status:** Proposed; owner/security review required. Foundation v0.1 shows only verified platform setup and aggregate endpoint health. All figures below are widget ideas, not live data or approved SLOs.
 
 ---
 
 ## 1. Role Purpose & Authority
-The Platform Administrator manages the overall multi-organization platform, oversees server-side cluster health, monitors tenant quotas, manages global integration endpoints, and provisions customer organizations.
+The Platform Super Admin manages platform operations, Group/Company onboarding and server-side health. Group/company drill-down is restricted to the canonical permissions; raw customer evidence is not routine platform-admin data.
 
 > [!CAUTION]
 > The default dashboard shows platform operations and aggregate organization/fleet metadata. Endpoint inventory metadata is available only through the canonical `endpoint:read` permission and is audited. Platform Administrators do not browse raw customer telemetry, process/file evidence or host files. Any exceptional support access requires a separate approved, customer-consented, time-bounded and audited break-glass procedure; no such UI is in this draft.
@@ -27,7 +27,8 @@ ARIBA EPP (Platform Mode)
 │   └── Service Health (only deployed and authorized operational signals)
 ├── Integrations (configuration visibility; management actions separately permissioned)
 └── Administration
-    ├── Organizations (Tenant Onboarding, Quotas, Status)
+    ├── Parent Groups (organization tenant onboarding, quotas, status)
+    ├── Companies (subsidiary lifecycle within a parent Group)
     ├── Platform Settings (TLS, Rate Limits, Ingestion Buffers)
     └── Audit Logs (Platform-wide Administrative Audit Trail)
 ```
@@ -38,7 +39,7 @@ ARIBA EPP (Platform Mode)
 
 | Widget ID / status | Widget | Proposed source / scope | Definition / freshness |
 |---|---|---|---|
-| PAD-01 · Proposed | Active Organizations | Organization lifecycle records; platform aggregate | Active/suspended counts by approved status definition; source `as_of` displayed; no sample count as live data |
+| PAD-01 · Proposed | Active Parent Groups / Companies | Organization and company lifecycle records; platform aggregate | Separate counts by approved lifecycle definition; source `as_of` displayed; no sample count as live data |
 | PAD-02 · Foundation/R1 when instrumented | Enrolled Endpoint Aggregate | Endpoint service aggregate only; endpoint detail requires audited `endpoint:read` | Count by approved lifecycle state; freshness and stale threshold To confirm |
 | PAD-03 · Proposed | Ingestion Health | Ingestion/broker/worker operational metrics, if deployed | EPS/lag/latency definitions and SLOs To confirm; label degraded/unknown distinctly |
 | PAD-04 · Proposed | Service Health | Platform health checks; infrastructure scope | Show only components actually deployed; no pretend cluster replication/HA metrics |
@@ -49,7 +50,7 @@ ARIBA EPP (Platform Mode)
 
 ## 4. Key Workflows & Actions
 
-1. **Organization Lifecycle:** Create/suspend an organization and provision its initial admin only with the approved platform permission; each mutation requires reason, confirmation and audit.
+1. **Group / Company Lifecycle:** Create a parent Group and subsidiary Company only with the exact approved platform permission; each mutation requires reason, confirmation and audit. Suspension remains unavailable unless its permission is explicitly defined.
 2. **Platform Health Monitoring:** Show queue/worker/storage metrics only when those components are deployed and instrumented; do not imply replication or redundancy that has not been built.
 3. **Integration Administration:** Secrets are write-only/masked; edits are privileged, audited and environment-scoped. Specific integrations remain release-gated.
 4. **Quota/License:** quota policy and commercial licensing are To confirm; do not display compliance or license-enforcement status before a defined contract.

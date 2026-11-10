@@ -1,5 +1,7 @@
 # Ariba EPP — SOC Analyst L1 (Triage) Dashboard
 
+> **Legacy role taxonomy:** the current role model uses Company SOC Analyst and Group SOC Lead. Use [Company SOC Analyst Dashboard](COMPANY-SOC-ANALYST-DASHBOARD.md) and [Group SOC Lead Dashboard](GROUP-SOC-LEAD-DASHBOARD.md) for current scope. This file is retained as historical workflow input only; do not treat L1 permissions as current grants.
+
 **Role:** SOC Analyst L1 (Triage & Monitoring)  
 **Security Boundary:** Scoped Operational Triage (Observe & Triage)  
 **Specification File:** `docs/dashboard/SOC-ANALYST-L1-DASHBOARD.md`  
