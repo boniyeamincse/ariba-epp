@@ -8,8 +8,8 @@
 - EPP owns endpoint identity/lifecycle, policy, detection orchestration and endpoint response.
 - Ariba SOC/Wazuh is an integration and cross-source SOC layer, not the EPP frontend/control-plane substitute.
 - Initial endpoint platforms are Windows and Linux; versions are unresolved.
-- Enterprise target requires a 4-tier corporate hierarchy: **Platform ➔ Organization (Parent Group) ➔ Company (Business Entity) ➔ Site (Unit/Factory/Office) ➔ Endpoint (Asset)**.
-- Group administrators obtain aggregated visibility across all subsidiary companies; company administrators are strictly isolated to their own company data.
+- Owner-confirmed model has five levels when the platform boundary is counted: **Platform ➔ Organization (Parent Group) ➔ Company (Business Entity) ➔ Site (Unit/Factory/Office) ➔ Endpoint (Asset)**.
+- Group administrators may receive parent-group rollups; company administrators are restricted to their Company. Exact permission grants remain a draft in `docs/security/PERMISSION-MATRIX.md` and are deny-by-default until approved.
 - Tenant-aware authorization, audit, signing, update/recovery, privacy and measured scalability are mandatory.
 
 ## 2. Logical components

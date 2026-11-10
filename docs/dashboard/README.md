@@ -12,7 +12,7 @@ Use the owner-confirmed feature matrix in `docs/PRODUCT-REQUIREMENTS.md` as the 
 
 | UI status | Meaning | Required behavior |
 |---|---|---|
-| `Foundation v0.1` | Endpoint enrollment, heartbeat, basic inventory/status and console shell | Show only data actually implemented; empty/loading/error states required |
+| `Proposed Foundation v0.1` | Candidate endpoint enrollment, heartbeat, basic inventory/status and console shell; exact login/MFA/admin scope requires owner freeze | Show only data actually implemented; empty/loading/error states required; do not treat the proof scope as approved yet |
 | `Release 1 / P0` | Process/file monitoring, malware scanning, detection, alerts and policy management | Show only after the relevant capability and acceptance tests are verified |
 | `Release 2 / P1` | Quarantine/guarded response, ransomware, firewall/isolation, vulnerability and application control | Hide or clearly mark planned until approved and implemented; response also requires ADR-014 |
 | `Release 3 / P2` | AI assistant and advanced threat hunting | Planned; no autonomous response |
@@ -68,7 +68,7 @@ ARIBA EPP
 
 ## 2. Role-Based Dashboard Files Index
 
-The current product model uses Platform → Parent Group → Company → Site → Endpoint scope. The role list below follows the owner-updated product requirements. Detailed write permissions are **not finalized**: `PERMISSION-MATRIX.md` names these roles in its summary, but its granular tables still use the older Org Admin / SOC L1 / SOC L2 columns. Until that matrix is reconciled, hide or disable role-specific mutation controls; do not infer grants.
+The current product model uses Platform → Parent Group → Company → Site → Endpoint scope. The role list below follows the owner-updated product requirements. The proposed hierarchy-aware `PERMISSION-MATRIX.md` is the one place for grants, but remains unapproved under ADR-018; hide or disable role-specific mutation controls until owner/security review approves the relevant grants.
 
 | Role | Specification File | Primary Scope & Responsibilities |
 |---|---|---|
@@ -97,7 +97,7 @@ The current product model uses Platform → Parent Group → Company → Site �
 
 ## 4. Role-based access map (UI mapping; server-side enforcement required)
 
-The role pages define UI affordances, not a second permission system. Map every control to the canonical [`PERMISSION-MATRIX.md`](../security/PERMISSION-MATRIX.md); that contract must first add granular columns for the current hierarchy. Until then, the following are scope descriptions only—not executable permission grants. Any mutation requires an explicit server-side permission and an audit event. Tenant scope comes from authenticated identity, never from a client-selected organization ID.
+The role pages define UI affordances, not a second permission system. Map every control to the proposed [RBAC & Hierarchical Permission Matrix](../security/PERMISSION-MATRIX.md). That draft covers current role names, but its `Proposed`/`To confirm` grants are not effective until ADR-018 is approved. The summary below is only a scope guide—not executable permission grants. Any mutation requires an approved server-side permission and audit event. Tenant scope comes from authenticated identity, never from a client-selected organization ID.
 
 | Role | Scope / key permissions | UI behavior and guardrail |
 |---|---|---|
@@ -147,10 +147,10 @@ Metric examples in role documents are illustrative only. Do not show a green “
 ## 7. Review checklist before implementation
 
 - [ ] Product owner approves navigation scope for the selected release.
-- [ ] Role permission matrix is approved and mapped to API permissions.
+- [ ] ADR-018 approves the role permission matrix and it is mapped to API permissions.
 - [ ] Canonical permission matrix has granular permissions for Group Admin, Group SOC Lead, Company Admin, Company SOC Analyst and Site Admin; legacy role columns are removed or explicitly mapped.
 - [ ] Alert state transitions are resolved in ADR-013 before triage mutation is built.
-- [ ] Decide whether incident cases are a separate Release 1 entity/workflow or remain part of alert investigation.
+- [ ] ADR-017 decides whether incident cases are a separate Release 1 entity/workflow or remain part of alert investigation.
 - [ ] No disruptive response control is enabled until ADR-014 and one action's recovery/test plan are approved.
 - [ ] On-demand scans appear only when Release 1 scan support exists and the user has `response:scan`; scope and audit behavior are verified.
 - [ ] Every widget has source, scope, formula/meaning and freshness/empty/error behavior.

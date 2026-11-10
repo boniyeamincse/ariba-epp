@@ -2,7 +2,7 @@
 
 ## Before you start
 
-- Read `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, and the relevant product/API/data/agent/security/test/deployment specifications.
+- Read `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/DOMAIN-GLOSSARY.md`, and the relevant product/API/data/agent/security/test/deployment specifications.
 - This repository is docs-first: do not begin product implementation until the owner approves the documentation gate and selects a milestone.
 - Do not implement capabilities the documents mark as out of scope for the MVP.
 - Do not describe planned or unverified work as complete, certified or

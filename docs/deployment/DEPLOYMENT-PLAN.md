@@ -27,7 +27,7 @@ Before pilot, decide:
 - Hosting provider, region and data residency for the centrally hosted multi-organization platform (deployment model approved in ADR-009); concrete tenant-isolation mechanism still to confirm.
 - Service network segmentation, ingress/egress, DNS, certificate authority and key rotation.
 - PostgreSQL, broker, search and object-store redundancy and backup/restore.
-- Availability, RPO/RTO, endpoint/EPS limits and data retention.
+- Availability, RPO/RTO, endpoint/EPS limits and data retention, including Group/Company/Site boundaries.
 - Monitoring, paging/on-call, security incident escalation and log ownership.
 - Agent package distribution, staged deployment rings, rollback and maintenance windows.
 - Customer export/delete, legal retention and deletion propagation across stores and backups.
@@ -55,7 +55,7 @@ Measure API availability/latency/errors, enrollment failures, agent last-seen/he
 
 - Define RPO/RTO and retention before production.
 - Back up PostgreSQL, search configuration/data as required, signing metadata and object references; protect backup keys separately.
-- Test restore and tenant/audit integrity before production and at an approved cadence.
+- Test restore and Group/Company/Site relationship, access-scope and audit integrity before production and at an approved cadence.
 - Have rollback plans for API schema, DB migrations, agent package and policy version.
 - Agent updates are staged by cohort, verified by signature and health, paused on elevated failures, and reversible.
 - If an endpoint is isolated, maintain a restricted management/recovery path and validate it in lab first.

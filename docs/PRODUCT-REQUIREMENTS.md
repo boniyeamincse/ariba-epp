@@ -1,6 +1,6 @@
 # Ariba EPP — Product Requirements
 
-**Status:** Draft for owner review; no product behavior is approved by this draft alone.  
+**Status:** Draft for owner review; Release 1/2/3 feature matrix is owner-confirmed (2026-11-10), while detailed behavior/contracts and open decisions below still require approval.
 **Scope:** Enterprise Windows/Linux EPP, centralized control plane and endpoint agents.  
 **Readers:** Product owner, engineering, security, QA and future coding agents.
 
@@ -15,8 +15,8 @@ Organizations need a central view of endpoint security posture and a controlled 
 | Role | Primary need | Initial access boundary |
 |---|---|---|
 | Platform Super Admin | Configure platform, organizations and global integrations | Global, privileged and audited |
-| Group Administrator | Oversee parent group (conglomerate) & subsidiary companies | Own Parent Organization (`org_id`) |
-| Group SOC Lead | Group-wide threat monitoring, triage & threat hunting | Own Parent Organization (`org_id`) |
+| Group Administrator | Oversee parent group (conglomerate) & subsidiary companies | Own Parent Organization (`organization_id`) |
+| Group SOC Lead | Group-wide threat monitoring and triage; threat hunting is Release 3 | Own Parent Organization (`organization_id`); company detail is permission-scoped |
 | Company Administrator | Manage subsidiary company (e.g. Akij Plastic), users, sites | Own Company (`company_id`) |
 | Company SOC Analyst | Triage & investigate alerts for specific company | Own Company (`company_id`) |
 | Unit / Site Administrator | Enroll endpoints & monitor local factory/office status | Own Site (`site_id`) |
@@ -24,7 +24,7 @@ Organizations need a central view of endpoint security posture and a controlled 
 | Auditor | Review audit trails, compliance reports & evidence | Read-only, scoped |
 | Viewer | See permitted executive dashboard & posture KPIs | Read-only, scoped |
 
-For full granular permissions, see [RBAC & Tenant Permission Matrix](security/PERMISSION-MATRIX.md). Enforcement must be server-side, not only hidden in UI.
+For the proposed granular permission contract, see [RBAC & Hierarchical Permission Matrix](security/PERMISSION-MATRIX.md) and pending ADR-018. Its grants are not effective until owner/security approval; enforcement must be server-side, not only hidden in UI.
 
 ### Deployment and tenancy model (owner-approved 2026-11-09, expanded 2026-11-10)
 
@@ -33,7 +33,7 @@ Ariba EPP is a **centrally hosted multi-organization, multi-company, multi-site 
 - **Parent Organization / Group:** Customer conglomerate (e.g., Akij Group, Boni IT, Meghna Group) with Group-level security administration and roll-up visibility across all subsidiaries.
 - **Company / Subsidiary:** Business entities within a group (e.g., Akij Plastic, Akij Piles, Akij Jute). Managed by Company Admins; cross-company visibility is strictly denied.
 - **Site / Unit / Location:** Operating units (Head Office, Factory 01, Factory 02, Depot, Branch) hosting local endpoints.
-- **Endpoints / Assets:** Carries denormalized `organization_id`, `company_id`, and `site_id` for zero-join, high-velocity hierarchical querying, strict isolation, and multi-level rollup reporting.
+- **Endpoints / Assets:** Endpoint records are proposed to carry `organization_id`, `company_id`, and `site_id` for direct scope checks and rollups. This storage choice is a proposal pending data-model review; no performance benefit is claimed before measurement.
 
 See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md) and [DATA-MODEL.md](database/DATA-MODEL.md). Hosting region, data residency, isolation mechanism, per-tenant quotas/retention and billing remain **To confirm**.
 
@@ -45,8 +45,8 @@ See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md) and [DATA-MODEL.md](data
 - Report agent/endpoint health, last-seen status and approved software/system inventory.
 - Define, sign, version, assign and track endpoint policies.
 - Ingest a versioned telemetry schema and produce traceable, explainable detection alerts.
-- Support alert/incident triage and audited response requests.
-- Provide organization/site scope, RBAC and audit history.
+- Support alert triage and audited response requests; standalone incident cases are conditional on ADR-017.
+- Provide parent-Group/Company/Site scope, RBAC and audit history.
 - Integrate with selected security engines and Ariba SOC/Wazuh/MISP through versioned contracts.
 - Begin with observe-only/lab-safe operation and scale only after measured load tests.
 
@@ -81,7 +81,7 @@ See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md) and [DATA-MODEL.md](data
 | AI Security Assistant | P2 | Release 3 | Alert explanation (Bangla/English), attack timeline & guided remediation |
 | Advanced Threat Hunting | P2 | Release 3 | Query builder for historical telemetry & deep MITRE ATT&CK exploration |
 
-Long-term product capabilities use EPP-01 through EPP-14 priorities in the [Enterprise Architecture](ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md#3-functional-modules-and-priorities). Foundation v0.1 must prove the management/agent path first:
+Long-term product capabilities use EPP-01 through EPP-14 priorities in the [Enterprise Architecture](ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md#3-functional-modules-and-priorities). The following is the **proposed Foundation v0.1 proof scope for owner review**, not a frozen commitment; exact login/MFA and administration surfaces remain To confirm:
 
 1. User login shell and organization/site administration.
 2. Tenant-scoped API and audit model.
@@ -90,42 +90,46 @@ Long-term product capabilities use EPP-01 through EPP-14 priorities in the [Ente
 5. Endpoint status in console.
 6. Development-only deployment and repeatable test environment.
 
-Next release gates add events, detections and policies; then a single action-specific, lab-only response prototype may be considered after explicit owner/security approval; broader SOC/scanner integrations follow the approved dependency order. Do not implement kill, quarantine or isolation as a bundle just because the roadmap lists them. The exact feature set, sequence and supported OS builds are owner decisions.
+Release 1 includes the owner-confirmed process/file telemetry, malware scanning, detection, alert management and signed-policy capabilities in the matrix above. Foundation v0.1 is only the earlier M0–M2 proof (identity, hierarchy basics, enrollment, heartbeat and console visibility); it does not deliver all Release 1 features. Release 2 adds quarantine, firewall/isolation, vulnerability and application control. Any disruptive action still requires ADR-014 and action-specific approval, even though its product phase is Release 2. MISP/Ariba SOC integration timing remains in the project roadmap and does not change the Release 1 capability list.
 
 ## 5. Functional requirements
 
-Each requirement needs a test or review artifact. `P0` is foundation/first production-oriented MVP planning priority, not a claim that the complete long-term capability ships in v0.1.
+Each requirement needs a test or review artifact. In the owner-confirmed feature matrix, P0 means Release 1, P1 means Release 2 and P2 means Release 3. Foundation v0.1 is only the M0–M2 enrollment/heartbeat proof slice and is not equivalent to all P0/Release 1 scope.
 
 ### Identity and tenancy
 
 - **FR-ID-01 (P0):** The platform shall authenticate users and enforce permissions on every protected API request.
-- **FR-ID-02 (P0):** Every organization-owned record shall be scoped to an organization; cross-organization reads/writes shall be denied and tested.
+- **FR-ID-02 (P0):** Every customer-owned record shall be scoped to its parent `organization_id` and, where applicable, `company_id` and `site_id`. Cross-Group and out-of-scope Site access is denied. Company-scoped roles cannot access sibling Companies; Group-scoped roles may access only explicitly granted group aggregates or Company details. Test each boundary by role.
 - **FR-ID-03 (P0):** Privileged user MFA is required before external pilot; provider and rollout are To confirm.
 - **FR-ID-04 (P0):** Enrollment shall use an authorized, short-lived, single-use token and assign a unique endpoint identity.
 - **FR-ID-05 (P0):** Agent identity can be revoked and renewed without sharing a reusable fleet-wide secret.
 
 ### Endpoint and agent management
 
-- **FR-EP-01 (P0):** Authorized users can list and inspect endpoints within their permitted organization/site scope.
-- **FR-EP-02 (P0):** Endpoint records include stable ID, hostname, platform/OS, agent version, organization/site, status and last-seen data; optional personal fields require privacy approval.
+- **FR-EP-01 (P0):** Authorized users can list and inspect endpoints within their permitted Group/Company/Site scope.
+- **FR-EP-02 (P0):** Endpoint records include stable ID, hostname, platform/OS, agent version, parent Group (`organization_id`), Company (`company_id`), Site (`site_id`), status and last-seen data; optional personal fields require privacy approval.
 - **FR-EP-03 (P0):** Agent heartbeat reports health and supported version; stale/offline thresholds are configurable and documented.
 - **FR-EP-04 (P0):** Agent reconnects after temporary network loss and uploads queued permitted events within configured bounds.
 - **FR-EP-05 (P0):** Agent update supports signature verification, staged rollout and tested rollback before pilot.
 
+### Malware scanning
+
+- **FR-MAL-01 (P0):** Release 1 supports on-demand and scheduled scanning through approved scanner integrations, with bounded resource use and auditable scan status/results. Supported OS, scan targets, scheduling controls, role/scope permissions, confirmation/limits and result fields remain To confirm under ADR-014/ADR-018; do not expose a scan control until its specific contract and tests are approved.
+
 ### Policy management
 
-- **FR-POL-01 (P0):** Policies are versioned, validated and scoped to organization/site/endpoint groups.
+- **FR-POL-01 (P0):** Policies are versioned, validated and scoped to approved Group/Company/Site/endpoint-group assignments; a broader parent scope must not bypass a more restrictive Company/Site boundary.
 - **FR-POL-02 (P0):** Agent verifies policy authenticity and reports applied/rejected version and reason.
 - **FR-POL-03 (P0):** Unsigned or unauthorized rollback policy is rejected.
 - **FR-POL-04 (P0):** Policy changes record actor, reason, previous/new version, scope and outcome.
 
 ### Telemetry and detection
 
-- **FR-EVT-01 (P0):** Ingestion validates schema version, endpoint identity, tenant scope, size and timestamps.
+- **FR-EVT-01 (P0):** Ingestion validates schema version, authenticated endpoint identity, Group/Company/Site scope, size and timestamps; hierarchy is derived server-side, never trusted from the event payload.
 - **FR-EVT-02 (P0):** Events have deduplication/idempotency and ingestion status; sensitive fields follow the approved allowlist.
 - **FR-DET-01 (P0):** Detection rules are versioned, enabled/disabled explicitly and linked to test evidence and required telemetry.
 - **FR-DET-02 (P0):** A matched test event creates an alert with rule ID/version, endpoint, evidence reference, severity, explanation and timestamps.
-- **FR-DET-03 (P0):** Alert lifecycle supports an owner-approved state machine. Candidate states are new, investigating, resolved and false-positive/accepted; exact states/transitions are To confirm in ADR-013.
+- **FR-DET-03 (P0):** Alert lifecycle supports an owner-approved state machine. Candidate states are new, investigating, resolved and false-positive/accepted; exact states/transitions are To confirm in ADR-013. Separate incident cases are governed by ADR-017.
 - **FR-DET-04 (P1):** ATT&CK mapping and IOC enrichment are added only when mappings/source confidence are recorded.
 
 ### Incident response
@@ -159,7 +163,7 @@ Each requirement needs a test or review artifact. `P0` is foundation/first produ
 
 ### Enroll and verify endpoint
 
-Admin creates scoped one-time enrollment authorization → agent proves authorization → server issues unique identity → agent sends authenticated heartbeat → console shows pending/healthy state → admin verifies endpoint/organization mapping and audit record.
+Authorized Company/Site administrator creates a scoped one-time enrollment authorization → agent proves authorization → server issues unique identity bound to Group/Company/Site → agent sends authenticated heartbeat → console shows pending/health state → authorized administrator verifies hierarchy binding and audit record.
 
 ### Investigate a test alert
 
@@ -169,12 +173,12 @@ Agent submits approved synthetic test event → platform validates tenant/agent/
 
 Authorized analyst selects a supported action and exact target → platform revalidates target and scope → approval/confirmation as required → expiring command sent → agent checks signature/expiry/target → result is returned → audit and recovery guidance are visible. Failure to contact agent leaves action pending/expired; it must not be reported as succeeded.
 
-## 8. Acceptance criteria for Foundation v0.1
+## 8. Proposed acceptance criteria for Foundation v0.1 (owner scope freeze required)
 
 1. One owned Windows lab endpoint and one owned Linux lab endpoint enroll through the approved flow.
-2. Each has a unique identity and is bound to the correct test organization/site.
+2. Each has a unique identity and is bound to the correct test parent Group, Company and Site.
 3. Invalid, expired, reused and revoked enrollment tokens are rejected.
-4. Authorized user sees only permitted tenant/site records; cross-scope attempts fail in API tests.
+4. Authorized user sees only permitted Group/Company/Site records; cross-scope attempts fail in API tests.
 5. Heartbeat/last-seen reflects simulated loss and recovery according to documented threshold.
 6. Console displays endpoint identity, OS/agent version and status without fabricated telemetry.
 7. Agent disconnect/reconnect does not lose identity or duplicate endpoint records.
@@ -186,12 +190,13 @@ Authorized analyst selects a supported action and exact target → platform reva
 
 - Exact Windows releases and Linux distributions/kernel support matrix.
 - Hosting provider/region and data residency for the centrally hosted multi-organization platform (deployment model approved in ADR-009).
-- User identity provider/MFA and initial organization/site permission matrix.
+- User identity provider/MFA and the exact Group/Company/Site permission matrix; the existing matrix is a proposal until approved.
 - Fields considered personal/sensitive; assigned-user collection and retention.
 - Heartbeat interval, stale/offline threshold, telemetry allowlist and retention.
-- Initial event schema and which process/file/network fields are acceptable.
+- Initial event schema and approved process/file fields for Release 1; whether network telemetry is in a later release and its fields/privacy remain To confirm.
 - Which component owns authority for integration-originated response requests and whether a requester may ever approve their own action (ADR-014).
-- Which P0 features are required at Foundation v0.1 versus later.
+- Which details of the narrow Foundation v0.1 proof (login/MFA, Group/Company/Site admin surfaces) are required; the Release 1 feature matrix above remains separately owner-confirmed.
+- Whether a standalone incident-case lifecycle is part of Release 1 or remains alert investigation only (ADR-017).
 - UI languages, design system and accessibility target.
 - Expected endpoint/EPS volume, availability and recovery objectives.
 - Dependency licensing/commercial redistribution review.

@@ -2,11 +2,11 @@
 
 **Document status:** Product direction captured; technical decisions require validation  
 **Product name:** Ariba EPP — Ariba Enterprise Endpoint Protection Platform  
-**Last updated:** 2026-11-09
+**Last updated:** 2026-11-10
 
 ## 1. Executive summary
 
-Ariba EPP হবে enterprise-এর Windows ও Linux endpoints-এর জন্য centralized management এবং distributed endpoint agents-ভিত্তিক security product। Product direction হলো commercial-grade enterprise platform: নিজস্ব endpoint agent, telemetry pipeline, detection orchestration, policy ও response management থাকবে; mature open-source ও OS security engines integration হিসেবে ব্যবহৃত হবে। Ariba SOC/Wazuh থাকবে integration layer—EPP-এর endpoint identity, management, policy ও detection architecture-এর বিকল্প নয়।
+Ariba EPP হবে enterprise-এর Windows ও Linux endpoints-এর জন্য centralized management এবং distributed endpoint agents-ভিত্তিক security product। Product direction হলো enterprise platform: নিজস্ব endpoint agent, telemetry pipeline, detection orchestration, policy ও response management থাকবে; mature open-source ও OS security engines integration হিসেবে ব্যবহৃত হবে। Ariba SOC/Wazuh থাকবে integration layer—EPP-এর endpoint identity, management, policy ও detection architecture-এর বিকল্প নয়। Product structure হলো Platform → Parent Group (`organization_id`) → Company (`company_id`) → Site (`site_id`) → Endpoint.
 
 Enterprise production লক্ষ্যটি দীর্ঘমেয়াদি product direction; প্রথমে modular foundation ও lab/pilot evidence দিয়ে ধাপে ধাপে সেখানে পৌঁছাতে হবে। Hybrid approach মানে mature engines integrate করে management, detection orchestration এবং endpoint response capability নিজেরা তৈরি করা। প্রথম সংস্করণকে complete antivirus replacement বলা হবে না; real-time prevention-এর জন্য OS enforcement mechanism, compatibility testing এবং security validation আবশ্যক।
 
@@ -46,11 +46,15 @@ Detailed design, component responsibilities, API/data proposals, delivery plan a
 
 ## 3. Users and primary workflows
 
-### Target users (proposed)
+### Target users (role families confirmed; exact grants pending)
 
-- IT administrator: endpoints enroll ও policy পরিচালনা করেন।
-- SOC/security analyst: alert triage, investigation এবং evidence পর্যালোচনা করেন।
-- Security administrator: role, access, integrations ও audit records পরিচালনা করেন।
+- Platform Super Admin: platform operations and Parent Group onboarding.
+- Group Administrator / Group SOC Lead: Group administration or Group-level SOC rollups.
+- Company Administrator / Company SOC Analyst: own Company administration or SOC work.
+- Unit / Site Administrator: local site operations.
+- Security Administrator, Security Auditor and Executive Viewer: assigned scope only.
+
+Exact role grants remain **Proposed/To confirm** in [RBAC & Hierarchical Permission Matrix](security/PERMISSION-MATRIX.md); no grant is active until approved.
 
 ### Main workflow
 
@@ -63,42 +67,44 @@ Detailed design, component responsibilities, API/data proposals, delivery plan a
 
 ## 4. Proposed product modules
 
-এগুলো long-term product map; সব module MVP-তে থাকবে না।
+এগুলো owner-confirmed release map-এর সংক্ষিপ্ত রূপ; detail ও acceptance `PRODUCT-REQUIREMENTS.md`-এ authoritative।
 
-| Module | উদ্দেশ্য | MVP অবস্থান |
+| Module | উদ্দেশ্য | Release status |
 |---|---|---|
-| Endpoint Management (EPP-01) | Enrollment, inventory, health, organization/site scope | P0 |
-| Agent Management (EPP-02) | Install, upgrade, heartbeat, lifecycle | P0 |
-| Telemetry Collection (EPP-03) | Process, file, network and security events | P0 |
-| Malware Protection (EPP-04) | YARA/ClamAV integration, hash checks, Defender integration, quarantine workflow | P0, staged and validated |
-| Detection Engine (EPP-05) | Versioned rules, correlation, severity and ATT&CK context | P0 |
-| Alert Management (EPP-06) | Triage, assignment, investigation, closure | P0 |
-| Policy Management (EPP-07) | Versioned security policy, assignment, signed delivery | P0 |
-| Incident Response (EPP-08) | Quarantine, process termination, endpoint isolation with approvals | P1 / guarded |
-| Vulnerability Management (EPP-09) | Software inventory, CVE context, patch status | P1 |
-| Application Control (EPP-10) | Allowlist/blocklist | P1 |
-| Network Protection (EPP-11) | Connection monitoring and firewall integration | P1 |
-| Threat Intelligence (EPP-12) | IOC management and MISP integration | P1 |
-| Reporting (EPP-13) | Compliance, risk and endpoint reports | P2 |
-| AI Security Assistant (EPP-14) | Alert explanation and investigation support | P2; never autonomous destructive action |
+| Endpoint & Agent Management (EPP-01/02) | Enrollment, inventory, health, lifecycle | Release 1; first proven subset is Foundation v0.1 |
+| Process & File Telemetry (EPP-03) | Approved process/file event collection and SHA256 metadata | Release 1; network telemetry is not included in the current matrix |
+| Malware Scanning (EPP-04) | YARA/ClamAV/native protection integration | Release 1; no full AV replacement claim |
+| Detection, Alerts & Policy (EPP-05/06/07) | Versioned detections, alert workflow and signed policy | Release 1; alert states depend on ADR-013 |
+| Quarantine & Guarded Response (EPP-08) | Action-specific approved response | Release 2; ADR-014/action review required; no destructive control by default |
+| Ransomware / Host Firewall / Application Control | Additional endpoint prevention/control | Release 2; platform support and tests required |
+| Vulnerability Management (EPP-09) | Inventory, CVE context and risk scoring | Release 2 |
+| Threat Intelligence (EPP-12) | IOC/MISP integration | Release 2 candidate; provenance/licensing review |
+| Incident Cases | Separate case workflow beyond alert investigation | To confirm; do not assume Release 1 |
+| Reporting (EPP-13) | Executive/compliance reports | To confirm; no compliance claim without evidence |
+| AI Assistant / Advanced Hunting (EPP-14) | Explain/assist or query historical telemetry | Release 3; no autonomous response |
 
-Priority labels are planning scope: P0 = first production-oriented MVP foundation, P1 = next release, P2 = advanced release. “Production-oriented” does not mean security certification or complete antivirus equivalence.
+Release status follows the owner-confirmed feature matrix in `PRODUCT-REQUIREMENTS.md`; each capability still requires implementation evidence and acceptance tests. Dashboard visibility is governed by `docs/dashboard/README.md`.
 
-## 5. MVP proposal
+## 5. Foundation v0.1 and Release 1 scope
 
-### First delivery foundation
+### Proposed Foundation v0.1 — first proof (roadmap M0–M2; owner freeze required)
 
-- Windows ও Linux endpoint support; exact supported versions পরে নির্ধারণ করতে হবে।
-- Secure enrollment, endpoint identity, heartbeat এবং agent health.
-- Basic hardware/software inventory ও last-seen status.
-- Policy assignment/read status, initial policy set সীমিত রাখা।
-- Security event ingest, basic detection rules and an alert lifecycle; the state machine and transitions await owner approval in ADR-013.
-- Alert detail-এ event source, timestamp, endpoint context, severity/reason এবং investigation history.
-- RBAC, administrator/analyst roles, audit trail.
-- Docker-based development deployment; production topology আলাদা security review ও deployment plan দাবি করে।
-- Ariba SOC/Wazuh-এর সাথে integration boundary, event contract এবং response handoff যাচাই।
+- Proposed login/admin shell and parent Group → Company → Site basics; exact login/MFA scope and administration surfaces remain To confirm, and role grants require permission-matrix approval.
+- Short-lived one-time enrollment, unique agent identity, heartbeat, basic inventory and online/stale status for one owned Windows and one owned Linux lab endpoint.
+- Audit evidence for enrollment and hierarchy changes.
+- Repeatable local/lab deployment only; Docker Compose is not a production topology.
+- Telemetry pipeline, detection rules, malware scanning, alert lifecycle and policy rollout are not part of this proof milestone.
 
-### Out of scope for first MVP
+**Foundation success:** both lab endpoints enroll with unique identities under the correct Group/Company/Site and their heartbeat/last-seen state appears in the authorized console. This does not demonstrate Release 1 detection or prevention.
+
+### Release 1 — owner-confirmed feature matrix (M3–M5)
+
+- Process/file telemetry and malware-scanning integrations within the approved OS/field scope.
+- Versioned detection rules and explainable alert management; alert transitions remain subject to ADR-013.
+- Signed/versioned policy distribution and acknowledgement, after signing authority and permission decisions are approved.
+- Release 1 integration specifics, supported OS builds, telemetry fields and acceptance tests must be confirmed before their implementation tasks.
+
+### Out of scope for Foundation v0.1
 
 - নিজস্ব full antivirus engine বা kernel-level prevention system; এগুলো long-term capability/research scope, initial milestone নয়।
 - Guaranteed protection from all malware/ransomware.
@@ -107,14 +113,17 @@ Priority labels are planning scope: P0 = first production-oriented MVP foundatio
 - macOS/mobile support.
 - AI-কে autonomous response authority দেওয়া।
 
-### MVP success criteria (targets to agree)
+### Foundation v0.1 acceptance criteria (targets to approve)
 
-- Test lab-এর enrolled endpoints console-এ identifiable, healthy/unhealthy এবং last-seen state-সহ দেখা যায়।
-- Test event end-to-end ingest হয়ে traceable alert তৈরি করে।
-- RBAC unauthorized user-কে restricted action থেকে বাধা দেয়।
-- Alert-এর response action হলে কে, কখন, কেন করেছে এবং ফলাফল কী—তা audit করা যায়।
-- Agent/server disconnect ও reconnect-এর ক্ষেত্রে documented, predictable behavior থাকে।
-- কোনো disruptive action production endpoint-এ চালু করার আগে test, authorization এবং rollback procedure আছে।
+- One authorized Windows and one authorized Linux lab agent enroll with unique identities and correct Group/Company/Site binding.
+- Invalid, expired, reused and revoked enrollment tokens are rejected.
+- Authorized users see only their approved hierarchy scope; cross-Group/Company/Site tests fail closed.
+- Console shows real endpoint identity, OS/agent version, health and last-seen data; no fabricated values.
+- Agent/server disconnect and reconnect behavior is documented and testable.
+- Enrollment/admin changes are auditable without secrets or unnecessary personal data.
+- Local/lab setup works without production credentials; no production response action is present.
+
+Release 1 has separate acceptance criteria in `PRODUCT-REQUIREMENTS.md` and `TEST-STRATEGY.md`; do not use Release 1 detection tests as Foundation v0.1 evidence.
 
 ## 6. Proposed architecture
 
@@ -215,14 +224,14 @@ Order below is a proposed delivery direction; dates and estimates remain plannin
 
 | Phase | Deliverable | Exit evidence |
 |---|---|---|
-| 0 — Discovery | Inspect existing Ariba SOC stack, users, Wazuh integration possibilities, target OS and privacy needs | Confirmed scope, integration inventory, threat model and architecture decisions |
-| 1 — Platform foundation | Authentication/RBAC, endpoint identity/enrollment, basic console shell and audit model | Role tests, enrollment/revocation tests and documented API contracts |
-| 2 — Endpoint visibility | Windows/Linux heartbeat, health and basic inventory | Lab endpoints display correct status; disconnect/reconnect behavior tested |
-| 3 — Events and alerts | Versioned event schema, ingestion, basic rules, alert lifecycle | Synthetic safe test events produce explainable and traceable alerts |
-| 4 — Policy and integration | Policy assignment/status and selected existing security-tool integration | Compatibility, failure and rollback tests pass |
-| 5 — Guarded response | Limited, explicit, auditable action(s), initially lab-only | Authorization, confirmation, outcome, timeout and rollback tests pass |
-| 6 — Pilot hardening | Performance, privacy, reliability, update/backup and operational reviews | Pilot checklist, support/rollback plan and known-limitations document approved |
-| Later | Vulnerability context, application/device control, threat intel, macOS/mobile, AI assistance | Separate product decision and acceptance criteria per capability |
+| Docs gate | Owner review of scope, hierarchy RBAC, OS support, privacy and component contracts | Decisions recorded; no blocking conflict; selected milestone approved |
+| Proposed Foundation v0.1 (M0–M2; owner freeze required) | Candidate login/admin shell, Group/Company/Site basics, enrollment, heartbeat and basic inventory; exact login/MFA and admin surfaces To confirm | After owner scope approval: one authorized Windows and one Linux lab endpoint visible in correct scope |
+| Release 1 (M3–M5) | Process/file telemetry, malware scanning, detection/alerts and signed policy | Synthetic test event→traceable alert; scanner/policy evidence; no disruptive response |
+| Release 2 feature work (M6–M8) | Approved guarded action(s), ransomware/firewall, vulnerability/app control and integrations | Each feature separately approved, lab-tested, audited and recoverable |
+| Release readiness (M9–M10) | Hardening, signed packaging, backup/restore, operations and any approved pilot | Release-gate evidence, pilot approval and rollback/support plan; deployment topology per ADR-008 |
+| Release 3 | AI explanation and advanced threat hunting | Separate requirements and safety review; no autonomous destructive action |
+
+Dates and staffing estimates remain planning-only. `PROJECT-TASKS.md` is the sole detailed execution ledger.
 
 ## 11. Suggested repository documentation/code layout
 
@@ -247,16 +256,18 @@ deployment/           # development and production deployment assets
 
 ## 12. Open decisions
 
-1. Is “Ariba EPP” the final product name? The first audience is hosted customer organizations per ADR-009; which pilot customers are selected is still To confirm.
+1. Is “Ariba EPP” the final product name, and which customer Groups are authorized for the first pilot?
 2. Which Windows and Linux versions/distributions must the first pilot support?
-3. Should EPP be a module in the existing Ariba SOC, a separate service, or both over time?
-4. Which current SOC components and interfaces are confirmed available for reuse?
-5. What endpoint volume, event volume, retention period and availability target should the MVP support?
+3. What API/event, identity and response-request contracts should connect the separate EPP control plane with Ariba SOC/Wazuh?
+4. Which existing SOC components/interfaces are confirmed integration targets, and which remain candidates only?
+5. What endpoint volume, event volume, retention period and availability target should Release 1 support?
 6. Which telemetry is acceptable to collect, and what are the tenant/data residency requirements?
 7. Which detection/scanning integrations are approved, licensed and supportable?
-8. Which response action, if any, is required in the first pilot? Should MVP remain observe-only?
-9. Which provider/region, data residency and production topology should the centrally hosted multi-organization platform use (the hosted model is approved in ADR-009)?
-10. Which languages are required for the initial console and alert explanations (Bangla, English, or both)?
+8. What exact Group/Company/Site permission grants are approved in the RBAC matrix, and what roles may see Company-level alert evidence?
+9. Is a standalone incident-case workflow included in Release 1, or is the first scope alert investigation only?
+10. Which response action, if any, is selected for Release 2/pilot, and what approval/recovery rules apply? Observe-only remains default until ADR-014/action review.
+11. Which provider/region, data residency and production topology should the centrally hosted platform use (hosting model is approved in ADR-009)?
+12. Which languages are required for the initial console and alert explanations (Bangla, English, or both)?
 
 ## 13. Source and confidence notes
 

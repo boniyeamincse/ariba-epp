@@ -2,8 +2,8 @@
 
 **Product:** Ariba EPP — Ariba Enterprise Endpoint Protection Platform  
 **Direction:** Enterprise security product; hybrid architecture; Windows + Linux  
-**Document status:** Product direction from owner; implementation details and technology choices require validation  
-**Updated:** 2026-11-09
+**Document status:** Product direction captured; implementation details and technology choices require validation
+**Updated:** 2026-11-10
 
 > This is a product and architecture plan, not a claim that the features are implemented, production-certified, or equivalent to a mature commercial antivirus. “Adopt” in the supplied concept is treated as a proposed baseline until repository review, compatibility checks, security review, licensing review and measurements are complete.
 
@@ -145,24 +145,24 @@ flowchart TB
 
 ## 3. Functional modules and priorities
 
-Priorities from the product concept: **P0** = first production-oriented MVP scope, **P1** = next release, **P2** = advanced release. Individual features still require staged implementation, test evidence and acceptance criteria.
+Release status follows the owner-confirmed matrix in [`PRODUCT-REQUIREMENTS.md`](PRODUCT-REQUIREMENTS.md). This module list maps the original EPP module IDs to that release plan; it is not a second release authority. Individual features still require staged implementation, test evidence and acceptance criteria.
 
-| ID | Module | Main scope | Priority |
+| ID | Module | Main scope | Release status |
 |---|---|---|---|
-| EPP-01 | Endpoint Management | Enrollment, inventory, health and status | P0 |
-| EPP-02 | Agent Management | Installation, upgrade, heartbeat and lifecycle | P0 |
-| EPP-03 | Telemetry Collection | Process, file and network events | P0 |
-| EPP-04 | Malware Protection | YARA/ClamAV/Defender integration and quarantine tracking | P0 |
-| EPP-05 | Detection Engine | Rules, correlation and severity | P0 |
-| EPP-06 | Alert Management | Triage, assignment, investigation and closure | P0 |
-| EPP-07 | Policy Management | Security policies, versioning and enforcement | P0 |
-| EPP-08 | Incident Response | Quarantine, process termination and isolation | P1, guarded |
-| EPP-09 | Vulnerability Management | CVE context and software inventory | P1 |
-| EPP-10 | Application Control | Allowlist/blocklist | P1 |
-| EPP-11 | Network Protection | Connection monitoring and firewall integration | P1 |
-| EPP-12 | Threat Intelligence | IOC lifecycle and MISP integration | P1 |
-| EPP-13 | Reporting | Compliance, risk and endpoint reports | P2 |
-| EPP-14 | AI Security Assistant | Alert explanation and investigation support | P2 |
+| EPP-01 | Endpoint Management | Enrollment, inventory, health and status | Release 1; Foundation v0.1 proves a minimal subset |
+| EPP-02 | Agent Management | Installation, upgrade, heartbeat and lifecycle | Release 1; Foundation v0.1 proves identity/heartbeat subset |
+| EPP-03 | Telemetry Collection | Process and file telemetry per approved field allowlist | Release 1 |
+| EPP-04 | Malware Scanning | YARA/ClamAV/native protection integration | Release 1; quarantine is separate Release 2 scope |
+| EPP-05 | Detection Engine | Versioned rules, correlation and severity | Release 1 |
+| EPP-06 | Alert Management | Triage and investigation; state machine per ADR-013 | Release 1; separate incident-case lifecycle To confirm |
+| EPP-07 | Policy Management | Signed/versioned policy assignment and acknowledgement | Release 1; signing authority/SoD decisions required |
+| EPP-08 | Quarantine / Guarded Response | Action-specific quarantine or response workflow | Release 2; ADR-014 and action approval required |
+| EPP-09 | Vulnerability Management | CVE context and software inventory | Release 2 |
+| EPP-10 | Application Control | Allowlist/blocklist | Release 2 |
+| EPP-11 | Network Protection | Host firewall and network isolation | Release 2; platform support/recovery tests required |
+| EPP-12 | Threat Intelligence | IOC lifecycle and MISP integration | Release 2 candidate; validate source/licensing |
+| EPP-13 | Reporting | Executive/compliance reports | To confirm; no compliance claim without approved evidence |
+| EPP-14 | AI Security Assistant | Alert explanation and investigation support | Release 3; no autonomous destructive action |
 
 ## 4. Endpoint management and agent
 
@@ -171,7 +171,7 @@ Two native agents are planned: **Ariba Agent for Windows** and **Ariba Agent for
 ### Endpoint inventory fields (proposed)
 
 - Endpoint ID, hostname, platform, OS/version, agent/version, IP and MAC address.
-- Organization, site/location, department and assigned user where policy permits.
+- Parent Group (`organization_id`), Company (`company_id`), Site (`site_id`), department and assigned user where policy permits.
 - Last seen, agent health, policy version/acknowledgement, protection status and risk context.
 
 Example data only:
@@ -573,13 +573,13 @@ Administration
 
 ### Candidate roles (Corporate Hierarchy)
 
-For the canonical, granular permissions mapping, see [PERMISSION-MATRIX.md](security/PERMISSION-MATRIX.md).
+For the current proposed permission codes and unresolved Group/Company/Site grants, see [RBAC & Hierarchical Permission Matrix](security/PERMISSION-MATRIX.md). Do not treat proposed mappings as effective permissions before owner/security approval.
 
 | Role | Scope | Key Responsibility |
 |---|---|---|
-| Platform Super Admin | Global Platform | Cross-organization administration under break-glass controls |
-| Group Administrator | Parent Group (`org_id`) | Overall security oversight across all subsidiary companies |
-| Group SOC Lead | Parent Group (`org_id`) | Cross-company threat monitoring and threat hunting |
+| Platform Super Admin | Global Platform | Platform operations and Parent Group onboarding; no routine raw customer evidence |
+| Group Administrator | Parent Group (`organization_id`) | Group administration and subsidiary-company oversight |
+| Group SOC Lead | Parent Group (`organization_id`) | Group-level alert rollups; company evidence only where explicitly permitted |
 | Company Administrator | Company (`company_id`) | Specific business entity (e.g. Akij Plastic) management & sites |
 | Company SOC Analyst | Company (`company_id`) | Triage and investigation strictly within company scope |
 | Unit / Site Administrator | Site (`site_id`) | Local endpoint enrollment & health (Factory, Office, Depot) |
@@ -587,7 +587,7 @@ For the canonical, granular permissions mapping, see [PERMISSION-MATRIX.md](secu
 | Auditor | Scoped | Read-only compliance audit and forensic reports |
 | Viewer | Scoped | Executive posture dashboards and high-level KPIs |
 
-Use RBAC plus organization/site scope. Include MFA for privileged users, permission checks on the server for every action and explicit loading/empty/stale/partial-data/error states in the UI. Dashboard counts must reflect actual telemetry; sample numbers are never live data.
+Use RBAC plus Platform/Group/Company/Site scope. Include MFA for privileged users, server-side permission checks on every action and explicit loading/empty/stale/partial-data/error states in the UI. Dashboard counts must reflect actual telemetry; sample numbers are never live data. The permission matrix is a draft under ADR-018; proposed grants are deny-by-default until owner/security approval.
 
 **Candidate frontend:** Next.js + TypeScript. Reuse an existing Ariba SOC frontend only after inspecting its actual stack and confirming product separation requirements.
 
@@ -654,7 +654,7 @@ Do not use these estimates for procurement or production capacity planning witho
 | Area | Minimum design requirement |
 |---|---|
 | User authentication | MFA, especially for privileged accounts |
-| Authorization | RBAC + tenant/organization/site scope |
+| Authorization | Draft RBAC + Platform/Group/Company/Site scope; effective grants require owner/security approval |
 | Agent identity | Unique credentials/certificate and mutual TLS candidate |
 | Transport | Current secure TLS configuration; define supported protocols/ciphers through security review |
 | Secrets | Secure secret storage, rotation and least privilege |
@@ -718,26 +718,40 @@ The supplied 26-week plan is an **illustrative planning estimate for a focused t
 |---|---|---|
 | 0 — Architecture and foundation | Weeks 1–2 | Requirements, architecture decisions, repo, migrations, auth/RBAC, dev deployment, API contracts |
 | 1 — Endpoint management | Weeks 3–5 | Windows/Linux agent skeleton, secure enrollment, heartbeat, inventory and initial console |
-| 2 — Telemetry and monitoring | Weeks 6–9 | Process/file/network signals, schema normalization, bounded local queue, OpenSearch integration |
-| 3 — Detection and malware integrations | Weeks 10–13 | Safe YARA/ClamAV/Defender integration tests, versioned rules, alerts and ATT&CK context |
-| 4 — Policy and guarded response | Weeks 14–17 | Signed/versioned policies, limited quarantine/response workflow, approval and audit |
-| 5 — Enterprise capability expansion | Weeks 18–21 | Tenant/site hardening, vulnerability context, application control, MISP/Wazuh integration, reports |
+| 2 — Release 1 telemetry and monitoring | Weeks 6–9 | Approved process/file signals only, schema normalization, bounded local queue and event-store integration; network signals deferred |
+| 3 — Detection and malware integrations | Weeks 10–13 | Safe YARA/ClamAV/Defender integration tests, versioned rules, explainable alerts and evidence; ATT&CK mapping is Release 2/P1 when approved provenance exists |
+| 4 — Policy / Release 1 completion | Weeks 14–16 | Signed/versioned policies, assignment, acknowledgement and rollback validation |
+| 5 — Release 2 capabilities | Weeks 17–21 | One explicitly approved lab response action only after ADR-014; then approved integrations, vulnerability context, firewall/application work as separately scoped |
 | 6 — Production hardening | Weeks 22–26 | Performance/reliability tests, secure update/recovery, backup/restore, assessment and pilot plan |
 
 Dates are placeholders from the supplied plan; staffing, dependencies and scope have not been estimated. Advanced integrations may shift later.
 
-### MVP/pilot acceptance checklist
+### Proposed Foundation v0.1 acceptance checklist (M0–M2; owner scope freeze required)
 
-- Authorized Windows and Linux test agents enroll and receive unique identity.
-- Enrollment token expires/is single-use as designed; revoke/renew flows are tested.
+- Authorized Windows and Linux lab agents enroll with unique identity and correct Group/Company/Site association.
+- Enrollment token expires/is single-use as designed; revoke/renew flow is tested.
 - Heartbeat and online/offline state are accurate under network interruption/recovery.
-- Endpoint inventory and policy acknowledgement are visible with correct tenant/site scope.
-- Safe synthetic test event reaches the server and produces the expected traceable alert.
+- Endpoint metadata and health are visible only within approved hierarchy scope.
+- Cross-Group, cross-Company and out-of-scope Site access tests fail closed.
+- Agent reconnects without duplicate identity; audit events omit secrets and unnecessary personal data.
+- Local/lab setup works without production credentials; no response action is present.
+- Whether login/MFA and which Group/Company/Site administration screens are included must be explicitly frozen by the owner before implementation; see ADR-015 and `IMPLEMENTATION-PLAN.md`.
+
+### Release 1 acceptance gate (M3–M5)
+
+- Safe synthetic process/file event reaches the server and produces a traceable, explainable alert. Network telemetry is excluded from this Release 1 gate unless the owner updates the release matrix and approves fields/privacy.
 - Detection rules have platform coverage, false-positive notes and test evidence.
 - Scanner integration uses a benign test artifact in an isolated lab and does not disable existing protection.
 - Signed policy verification and unauthorized rollback rejection are tested.
-- Response is unavailable by default to unauthorized users; approved lab action records actor, reason, target, result and recovery path.
-- Agent/server upgrades, failure behavior, resource use, backup/restore and rollback are tested.
+- Release 1 does not enable disruptive response controls.
+- Standalone incident-case APIs/workflow are absent unless ADR-017 approves them for a release.
+- Quarantine is Release 2; Release 1 scanning produces scan-result/alert metadata only.
+
+### Release 2 response acceptance gate (M6; only if approved)
+
+- ADR-014 and one action-specific permission, approval, target validation, expiration, audit and recovery path are approved.
+- One selected action is tested only on an isolated authorized lab endpoint; all other disruptive actions remain unavailable.
+- Agent/server upgrades, failure behavior, resource use, backup/restore and rollback are tested before pilot.
 
 ## 16. Implementation task source
 
@@ -745,9 +759,9 @@ Use [PROJECT-TASKS.md](PROJECT-TASKS.md) as the sole detailed M0–M10 implement
 
 ### Foundation v0.1 — first release proof milestone (roadmap M0–M2)
 
-Deliverables: repository and architecture docs, login/admin console shell, organization/site management, PostgreSQL migrations, FastAPI service (if confirmed), development deployment, initial Windows/Linux agent prototypes, secure endpoint enrollment and heartbeat.
+Deliverables: repository and architecture docs, login/admin console shell, Parent Group/Company/Site management, PostgreSQL migrations, management API, development deployment, initial Windows/Linux agent prototypes, secure endpoint enrollment and heartbeat.
 
-**Definition of success:** one authorized Windows test endpoint and one authorized Linux test endpoint enroll into the lab platform, each with a unique identity, and their health/last-seen status is visible in the console. This milestone proves the management/agent path only; it does not establish malware-prevention efficacy.
+**Definition of success:** one authorized Windows test endpoint and one authorized Linux test endpoint enroll into the lab platform with unique identities and correct Parent Group/Company/Site association; health/last-seen is visible only within approved scopes. This milestone proves the management/agent path only; it does not establish malware-prevention efficacy.
 
 ## 17. Recommended engineering workflow
 

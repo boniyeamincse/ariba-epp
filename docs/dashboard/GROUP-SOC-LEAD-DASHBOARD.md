@@ -2,7 +2,7 @@
 
 **Role:** Group SOC Lead
 **Scope:** Parent Group rollups; company-level evidence only with an explicit permission
-**Status:** Proposed; Group SOC granular permissions are not yet represented in the detailed RBAC matrix.
+**Status:** Proposed; Group SOC permissions appear as proposed grants in the RBAC draft, but exact scope/evidence access remains unapproved under ADR-018.
 
 ## Purpose and boundary
 
@@ -33,7 +33,7 @@ Group SOC Overview (aggregate)
 ## Workflow and safety
 
 - Review Group-level alert aggregates and escalate only using approved tenant/company routing.
-- Company alert assignment, notes and evidence access require explicit Group SOC permissions; current detailed RBAC has no corresponding columns.
+- Company alert assignment, notes and evidence access require explicit Group SOC permissions; proposed matrix grants remain ineffective until ADR-018 approval.
 - No destructive response control is available. Scan requests follow `response:scan` only after a new Group SOC permission mapping and release approval.
 - High-severity indicators are conveyed by text/icon as well as color; no audio/flash-only alerting.
 - Search, exports and saved views must preserve parent Group scope and avoid revealing other groups.

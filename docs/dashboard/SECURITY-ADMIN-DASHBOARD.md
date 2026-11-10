@@ -19,7 +19,7 @@ The Security Administrator reviews security posture and, when available, drafts 
 ARIBA EPP
 ├── Dashboard (Security Posture & Enforcement Summary)
 ├── Protection
-│   ├── Malware Scanning (Release 1: implemented scanner integrations; request scan only with `response:scan`)
+│   ├── Malware Scanning (Release 1 feature scope; show controls only after scanner implementation is verified and `response:scan` is approved)
 │   ├── Ransomware Protection (Release 2 / planned)
 │   ├── Host Firewall (Release 2 / planned)
 │   └── Application Control (Release 2 / planned)

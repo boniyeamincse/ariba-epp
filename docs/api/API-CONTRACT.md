@@ -7,7 +7,7 @@
 ## 1. Contract rules
 
 - JSON over authenticated TLS; agent identity uses unique certificate credentials, mutual TLS preferred.
-- User APIs require user authentication, action permission and organization/site scope. Agent APIs require endpoint identity and endpoint-scoped permissions. Integration APIs have separate credentials/scopes.
+- User APIs require authentication, an explicitly approved permission and server-derived Platform/Group/Company/Site scope. Agent APIs require endpoint identity and endpoint-scoped authority. Integration APIs have separate credentials/scopes. Exact role grants remain in the proposed [permission matrix](../security/PERMISSION-MATRIX.md) and are deny-by-default until approved.
 - Authorization occurs server-side on every request. IDs in URL/body do not grant access.
 - Use UTC RFC 3339 timestamps; identify schema/API versions explicitly.
 - Use request IDs and idempotency keys for retryable writes. Agent event IDs are unique per endpoint/producer scope.
@@ -45,13 +45,13 @@ Do not disclose cross-tenant record existence in error messages. Common HTTP beh
 
 | Method | Route | Principal | Purpose |
 |---|---|---|---|
-| POST | `/organizations` | Platform Super Admin | Onboard new Parent Group (Organization) |
-| GET | `/organizations` | Authenticated user | List authorized Parent Groups |
+| POST | `/organizations` | Platform Super Admin with `org:create` | Onboard new Parent Group (Organization) |
+| GET | `/organizations` | Principal with scoped `org:view` | List only authorized Parent Groups |
 | POST | `/organizations/{org_id}/companies` | Group Admin | Onboard subsidiary Company (e.g. Akij Plastic) |
 | GET | `/organizations/{org_id}/companies` | User with Group/Company scope | List subsidiary Companies |
 | POST | `/companies/{company_id}/sites` | Company Admin | Create operating unit/site (Factory, Office, Depot) |
 | GET | `/companies/{company_id}/sites` | User with Company/Site scope | List Sites belonging to a Company |
-| POST | `/sites/{site_id}/enrollment-tokens` | Company / Site Admin | Generate scoped one-time enrollment token |
+| POST | `/sites/{site_id}/enrollment-tokens` | Company Admin with approved `token:generate`; Site Admin scope To confirm | Generate scoped one-time enrollment token |
 | POST | `/agents/enroll` | One-time enrollment authorization | Enroll agent, associate org/comp/site, issue cert |
 | POST | `/agents/renew` | Existing agent identity | Renew credentials |
 | GET | `/agents` | User with endpoint-read scope | List scoped endpoints (Group/Company/Site filtered) |
@@ -65,20 +65,22 @@ Do not disclose cross-tenant record existence in error messages. Common HTTP beh
 | GET | `/alerts` | User with alert-read scope | List scoped alerts |
 | GET | `/alerts/{alert_id}` | User with alert-read scope | Alert detail/evidence references |
 | PATCH | `/alerts/{alert_id}` | User with alert-triage scope | Change permitted alert state/assignment |
-| POST | `/incidents` | User with incident-write scope | Create investigation |
-| GET | `/incidents/{incident_id}` | User with incident-read scope | Incident and event timeline |
-| POST | `/response/actions` | Authorized responder/integration identity | Request guarded action |
-| GET | `/response/actions/{action_id}` | Scoped user/endpoint | Action status/result |
-| POST | `/malware/scans` | Authorized user or agent | Request scan; exact flow to confirm |
+| POST | `/incidents` | User with approved `incident:create` | Separate case lifecycle is To confirm; do not implement until owner confirms its release scope |
+| GET | `/incidents/{incident_id}` | User with approved `incident:read` | Only if a separate incident-case lifecycle is approved |
+| POST | `/response/actions` | Authorized responder/integration identity | Release 2 / ADR-014 gated; unavailable until action-specific approval |
+| GET | `/response/actions/{action_id}` | Scoped user/endpoint with `response:view` | Release 2 gated; return only approved action metadata/result |
+| POST | `/malware/scans` | User/agent with explicit `response:scan` scope | Release 1 non-disruptive scan request; target types and confirmation rules To confirm |
 | GET | `/inventory/software` | Scoped inventory reader | Software inventory |
 | GET | `/vulnerabilities` | Scoped security reader | Vulnerability findings |
 | POST | `/iocs` | Threat-intel administrator/integration | Import IOC with provenance |
 
-The authoritative alert state machine and allowed transitions are **To confirm** in ADR-013. Candidate states are listed in `PRODUCT-REQUIREMENTS.md`; do not implement alert state mutation until ADR-013 and matching requirements/tasks are approved.
+The authoritative alert state machine and allowed transitions are **To confirm** in ADR-013. Candidate states are listed in `PRODUCT-REQUIREMENTS.md`; do not implement alert state mutation until ADR-013 and matching requirements/tasks are approved. Standalone incident-case endpoints remain blocked by ADR-017.
+
+The `/malware/scans` sketch covers an on-demand request only. Release 1 also includes scheduled scanning as a feature category, but its schedule representation, API/policy ownership, target scope, limits and permissions are To confirm under FR-MAL-01, ADR-014 and ADR-018; this contract does not define or authorize a schedule-management endpoint.
 
 ## 4. Enrollment contract sketch
 
-Request fields: short-lived single-use `enrollment_token`, `hostname`, `platform`, `agent_version`, optional requested organization/site claim that server must independently authorize. No client-supplied organization ID is trusted without token scope.
+Request fields: short-lived single-use `enrollment_token`, `hostname`, `platform`, `agent_version`, and any additional OS facts approved by the telemetry/privacy policy. The token is bound server-side to an authorized Group/Company/Site enrollment scope. Any client-supplied hierarchy IDs are hints only and must match the token's server-side scope; they never grant or change scope.
 
 ```json
 {
@@ -124,7 +126,7 @@ Agent submits `agent_version`, `platform`, `health`, `policy_version`, `reported
 
 ## 6. Telemetry contract sketch
 
-An event envelope contains `schema_version`, `event_id`, `event_type`, endpoint identity from authenticated context, `event_time`, producer/agent version, platform and an allowlisted typed payload. Organization scope is derived server-side from the authenticated agent, not trusted from payload.
+An event envelope contains `schema_version`, `event_id`, `event_type`, endpoint identity from authenticated context, `event_time`, producer/agent version, platform and an allowlisted typed payload. `organization_id`, `company_id` and `site_id` are derived server-side from the authenticated endpoint record, not trusted from event payload.
 
 ```json
 {
@@ -159,28 +161,22 @@ Request must include `endpoint_id`, supported `action_type`, exact target refere
 
 Response states: `pending_approval`, `queued`, `accepted`, `running`, `succeeded`, `failed`, `rejected`, `expired`, `cancelled`. State transitions, cancellation and approval rules must be frozen before response implementation. Endpoint verifies command signature, expiry, action allowlist and target identity; failure is audited and never reported as success.
 
-## 8. Authorization matrix (minimum baseline)
+## 8. Authorization and hierarchy contract
 
-For the canonical, granular permission-level mapping, refer to [RBAC & Tenant Permission Matrix](../security/PERMISSION-MATRIX.md).
+Do not maintain a second role matrix in the API document. The proposed permission codes, current-role mapping, scope rules and unresolved grants are in [RBAC & Hierarchical Permission Matrix](../security/PERMISSION-MATRIX.md). That matrix is currently a draft: all `Proposed`/`To confirm` grants are denied until the owner/security approval is recorded.
 
-| Operation | Platform Admin | Group Admin | Company Admin | Site Admin | Security Admin | Group/Co SOC | Auditor/Viewer |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Read endpoint in scope | Global | Own Group | Own Company | Own Site | Assigned scope | Scoped | Read-only scope |
-| Enroll/revoke endpoint | Global | Group/Co scope | Own Company | Own Site | Explicit permission | No | No |
-| Create/assign policy | Global | Group scope | Co scope | No | Assigned scope | No | No |
-| Read/triage alert | No | Own Group | Own Company | No | Assigned scope | Yes | Read-only |
-| Request disruptive action | No | No | No | No | No | L2 Responder only [A] | No |
-| Manage roles/integrations | Global | Own Group | Own Company | No | No by default | No | No |
-
-Enforcement is strictly server-side. Cross-group and cross-company unauthorized requests fail closed (`403 Forbidden` or `404 Not Found`).
+Every resource lookup and mutation must validate the authenticated principal's full hierarchy scope (`organization_id`, `company_id`, `site_id`) against the resource. Group aggregates must not silently expose Company evidence. Cross-scope object IDs are denied and may return `404` to avoid disclosure. All reads/searches/exports/background jobs apply the same scope filter.
 
 ## 9. API acceptance tests
 
 - Unauthenticated, expired and revoked identities fail.
 - Cross-tenant IDs fail without revealing object existence.
+- Cross-Group and out-of-scope Site resource IDs fail without revealing existence. Company-scoped users cannot access sibling Companies; Group-level queries return only explicitly approved aggregates or Company details.
 - Reused enrollment token fails; duplicate endpoint enrollment is handled idempotently or rejected according to approved policy.
 - Oversized/invalid event batches fail without partial silent corruption.
 - Event retries with the same idempotency identity do not create duplicate alerts unintentionally.
 - Unauthorized response requests are denied even if the UI sends them.
 - Expired, replayed, unsigned and wrong-endpoint commands are rejected.
 - Error payloads contain no secrets, stack traces or sensitive cross-tenant detail.
+
+API route permissions are not considered implementable until the current [RBAC matrix](../security/PERMISSION-MATRIX.md) is approved under ADR-018 and mapped to all nine role families.

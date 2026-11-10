@@ -28,7 +28,7 @@ The Viewer needs high-level executive visibility into the organization's securit
 ARIBA EPP (Auditor Mode)
 ├── Dashboard (Audit and Authorized Posture Overview; no certification claim)
 ├── Policy Management (Release 1, read-only version history where permitted)
-├── Detection & Response (Read-only alert investigations; separate incident cases To confirm)
+├── Detection & Response (Read-only alert investigations; separate incident cases To confirm in ADR-017)
 ├── Reports (Planned; export/compliance evidence only when specified and permissioned)
 └── Administration
    └── Audit Logs (Scoped audit events; integrity status only if verified)
@@ -51,9 +51,9 @@ ARIBA EPP (Executive View)
 | Widget ID / status | Widget | Proposed source / scope | Definition / freshness |
 |---|---|---|---|
 | AVW-01 · Proposed | Fleet Protection Posture | Verified agent/policy status; assigned organization | Do not show a composite score until formula, version, coverage denominator and unknown-state handling are approved |
-| AVW-02 · To confirm | Active Incident Cases | Incident records; assigned organization | Show only if a separate case lifecycle is approved; no response control |
+| AVW-02 · To confirm (ADR-017) | Active Incident Cases | Incident records; assigned Group/Company scope | Show only if a separate case lifecycle is approved; no response control |
 | AVW-03 · Release 2 / P1 | Vulnerability Posture | Inventory service; assigned organization | Hidden until implemented; no 30-day SLA unless owner-approved policy exists |
-| AVW-04 · To confirm (ADR-013) | Resolution Trend | Incident/audit timestamps; assigned organization | Hidden until ADR-013 defines states, time calculation, denominator and reporting window |
+| AVW-04 · To confirm (ADR-017; ADR-013 if based on alert states) | Resolution Trend | Approved case/alert audit timestamps; assigned Group/Company | Hidden until the measured lifecycle, formula, denominator, timezone and reporting window are approved |
 
 ### For Auditors:
 | Widget ID / status | Widget | Proposed source / scope | Definition / freshness |

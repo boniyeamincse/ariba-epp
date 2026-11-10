@@ -7,7 +7,7 @@ owner-approved decision. A proposal is not approval.
 ## Conventions
 
 - A file is created when a decision is drafted or approved: `ADR-NNN-short-title.md`. The register may list a Proposed/To confirm topic before its file exists.
-- Status values: `Proposed`, `Approved`, `Superseded`, `Rejected`.
+- Status values: `To confirm`, `Proposed`, `Approved`, `Superseded`, `Rejected`. Use `To confirm` when an owner decision is still required; use `Proposed` for a concrete recommendation awaiting approval.
 - `Approved` means the product owner accepted it; it is not proof that the feature
   is implemented, tested, certified or deployed.
 - Record decision owner, date, context, decision, consequences and what remains
@@ -40,5 +40,7 @@ owner-approved decision. A proposal is not approval.
 | ADR-014 | Response action authority | Approval, requester/approver separation, action scope, expiry and recovery | To confirm |
 | ADR-015 | User identity and MFA | Identity provider, session strategy and privileged MFA | To confirm |
 | ADR-016 | Hosting region/residency | Provider/region, data residency and operational targets | To confirm |
+| ADR-017 | Incident-case lifecycle | Decide whether cases are distinct from Release 1 alerts; define states, transitions, ownership and close rules | To confirm |
+| ADR-018 | Hierarchical RBAC grants | Approve exact Platform/Group/Company/Site permissions, scope inheritance and role stacking | To confirm |
 
 This register is canonical for IDs and status. Architecture/task docs may reference an ADR, but must not allocate a different topic to the same ID. Approved ADR-009 is not superseded by these pending infrastructure/isolation choices.

@@ -5,15 +5,16 @@
 
 ## 1. Purpose and operating modes
 
-The agent enrolls a company-authorized endpoint, reports bounded health/inventory/security events, fetches authenticated signed policy, and later may process a narrow allowlisted response command. It must not be a remote shell or general-purpose arbitrary command runner.
+The agent enrolls an endpoint under an authorized parent Group, Company and Site, reports bounded health/inventory/security events, fetches authenticated signed policy, and later may process a narrow allowlisted response command. The enrollment grant binds these hierarchy IDs server-side; the agent cannot choose or change scope by submitting IDs. It must not be a remote shell or general-purpose arbitrary command runner.
 
 Modes:
 
 1. **Unenrolled:** no telemetry submission or response; only safe local enrollment flow.
-2. **Enrolled observe-only (initial):** heartbeat, approved inventory and selected telemetry; response commands disabled.
-3. **Policy-managed:** applies only verified compatible signed policy; reports acknowledgement.
-4. **Guarded response (future):** only approved action types, after separate security/owner gate.
-5. **Degraded/offline:** existing OS protection remains active; bounded queue and explicit health status.
+2. **Foundation v0.1 enrolled:** heartbeat and approved basic inventory only; no process/file/network telemetry collectors and no response commands.
+3. **Release 1 observe-only telemetry:** enable only the approved process/file event allowlist after release approval; response commands remain disabled.
+4. **Policy-managed:** applies only verified compatible signed policy after the policy contract is approved; reports acknowledgement.
+5. **Guarded response (Release 2 candidate):** only approved action types after ADR-014/action-specific security gate.
+6. **Degraded/offline:** existing OS protection remains active; bounded queue and explicit health status.
 
 ## 2. Support matrix (must be approved before release)
 
@@ -27,7 +28,7 @@ macOS/mobile are out of initial platform scope. Verify API privilege needs, dist
 ## 3. Agent lifecycle
 
 1. Install signed package through an authorized administrator.
-2. Enroll using short-lived, single-use authorization scoped to intended organization/site.
+2. Enroll using short-lived, single-use authorization scoped to intended Group/Company/Site.
 3. Obtain unique endpoint identity/certificate; protect private key and support revocation/renewal.
 4. Start service in observe-only mode; report heartbeat and approved inventory.
 5. Fetch signed, versioned policy; verify signature, target scope, schema and anti-rollback rules.
@@ -43,7 +44,7 @@ macOS/mobile are out of initial platform scope. Verify API privilege needs, dist
 | Config | Parse/validate protected local configuration |
 | Enrollment/identity | One-time enrollment, certificate identity, rotation/revocation |
 | Heartbeat | Health, version, policy state and last contact |
-| Collectors | OS-specific process/file/network/security metadata |
+| Collectors | OS-specific process/file metadata for the current Release 1 scope; future network/security classes require separate release and privacy approval |
 | Normalizer | Map collector output to versioned Ariba event schema |
 | Queue | Bounded local queue, dedupe, retry, backpressure and expiry |
 | Transport | Authenticated encrypted communication and response validation |
@@ -56,9 +57,9 @@ Candidate tools: Go core; Windows ETW/Event Log; Linux auditd/osquery; native fi
 
 ## 5. Telemetry contract
 
-Each event carries schema version, unique event ID, event type, event timestamp, producer/agent version, platform and typed payload. Endpoint and tenant identity derive from authenticated agent context server-side. The data-field allowlist, collection toggles, user visibility and retention are **To confirm**.
+Each event carries schema version, unique event ID, event type, event timestamp, producer/agent version, platform and typed payload. Endpoint and Group/Company/Site identity derive from authenticated agent context server-side, not submitted payload. The data-field allowlist, collection toggles, user visibility and retention are **To confirm**.
 
-Potential classes: system health, process lifecycle, selected file metadata, selected network connection metadata and policy/update events. Do not collect file contents, keystrokes, browser content or unrelated user activity. Command-line, user identity and paths are sensitive and need explicit purpose/privacy approval.
+Potential classes include system health, process lifecycle, selected file metadata, selected network connection metadata and policy/update events. Current Release 1 telemetry scope is process/file only; network connection collection is not approved by the release matrix and must not be enabled without a later scope/field/privacy decision. Do not collect file contents, keystrokes, browser content or unrelated user activity. Command-line, user identity and paths are sensitive and need explicit purpose/privacy approval.
 
 ## 6. Offline, retry and resource behavior
 

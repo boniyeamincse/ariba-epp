@@ -35,7 +35,7 @@
 - Expired/reused/revoked token, wrong scope and malformed request are rejected.
 - Heartbeat updates server receipt/health; stale/offline and reconnect transitions are correct.
 - Duplicate retry does not create duplicate endpoint or corrupt status.
-- User from another tenant cannot list, read, mutate or infer endpoint existence.
+- Cross-Group and out-of-scope Site access is denied; Company-scoped users cannot access sibling Companies; Group-scoped users see only explicitly approved aggregates/details. Verify each role/resource path.
 - Missing/insufficient permission is rejected server-side even if UI control is bypassed.
 - API/log/error output contains no tokens, certificates, private keys or unnecessary personal data.
 - Agent offline queue stays within configured bounds and reports degraded state.
@@ -43,7 +43,7 @@
 
 ### Telemetry and detection (later gate)
 
-- Valid event accepted; malformed, oversize, wrong schema, unknown endpoint and unauthorized tenant rejected.
+- Valid event accepted; malformed, oversize, wrong schema, unknown endpoint and unauthorized Group/Company/Site scope rejected.
 - Duplicate event retry has deterministic idempotent behavior.
 - Synthetic matching event triggers expected rule version; near-miss event does not.
 - Alert includes rule version, explanation, timestamps and evidence reference.

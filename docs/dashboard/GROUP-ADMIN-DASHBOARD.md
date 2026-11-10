@@ -2,7 +2,7 @@
 
 **Role:** Group Administrator
 **Scope:** One parent Group (`organization_id`) and its subsidiary Companies (`company_id`)
-**Status:** Proposed view; granular permission mapping is blocked until `docs/security/PERMISSION-MATRIX.md` is reconciled with the current role hierarchy.
+**Status:** Proposed view; relevant Group Admin permission codes are mapped as proposed grants in `docs/security/PERMISSION-MATRIX.md`, but remain ineffective until ADR-018 approval.
 
 ## Purpose and boundary
 
@@ -35,7 +35,7 @@ Group Dashboard
 ## Actions and permissions
 
 - Company create/update, Group user/role management and site management require `company:create`, `company:manage`, `user:manage`, `user:assign_role` and `site:manage` in Group scope; these codes exist in the tenancy section. Enforce them server-side and test Group/Company isolation.
-- Endpoint, policy, alert and telemetry permissions are not mapped to `group_admin` in the detailed matrix; keep those controls unavailable pending an owner-approved mapping.
+- The matrix proposes Group Admin aggregate endpoint and limited endpoint-metadata reads; those grants remain denied until ADR-018 approval. Raw evidence, policy mutation and alert triage are not implied by Group Admin status and remain unavailable unless explicitly mapped and approved.
 - Group admin must not assign Platform Super Admin or elevate their own scope.
 - Company suspension is not available until an explicit permission, confirmation, effect summary and recovery/appeal workflow are approved.
 - Every change records actor, parent Group, affected Company, reason and outcome.

@@ -79,10 +79,10 @@ Using the right language per layer is normal for security products. The rule is:
 | ID | Milestone | Goal | Exit evidence | Window |
 |---|---|---|---|---|
 | M0 | Foundation & decisions | Repo, ADRs, threat model, dev environment, quality gates | Approved ADRs, `docker compose up` works, CI green | Weeks 1–2 |
-| M1 | Identity, RBAC & tenancy | Users, roles, org/site scope, audit | Role-matrix and tenant-isolation tests pass | Weeks 2–4 |
+| M1 | Identity, RBAC & hierarchy | Users, roles, Group/Company/Site scope, audit | Owner-approved role matrix and hierarchy-isolation tests pass | Weeks 2–4 |
 | M2 | Endpoint identity & enrollment | Agent enrolls, heartbeats, appears in console | 1 Windows + 1 Linux endpoint online in console | Weeks 3–5 |
 | M3 | Telemetry pipeline | Events flow from agent to searchable store | Synthetic event is queryable end-to-end | Weeks 6–9 |
-| M4 | Detection & alerts | Versioned rules produce explainable alerts | Safe test event → traceable alert with ATT&CK context | Weeks 10–13 |
+| M4 | Detection & alerts | Versioned rules produce explainable alerts | Safe test event → traceable alert with rule provenance and evidence; ATT&CK mapping is Release 2/P1 per FR-DET-04 | Weeks 10–13 |
 | M5 | Policy engine | Signed, versioned policies with acknowledgement | Agent applies only signed policy; rollback tested | Weeks 14–16 |
 | M6 | Guarded response prototype | One owner-approved, audited, expiring endpoint action | Isolated-lab evidence plus recovery; remaining actions stay denied | Weeks 15–17 |
 | M7 | Integrations | Wazuh, MISP, OpenSearch, notifications | Versioned contract tests and failure handling | Weeks 18–21 |
@@ -92,10 +92,11 @@ Using the right language per layer is normal for security products. The rule is:
 
 **Release mapping (Owner-confirmed 2026-11-10):**
 - **MVP (Release 1, P0):** M0–M5 (Endpoint & Agent Management, Process & File Monitoring, Malware Scanning, Detection Engine, Alert Management, Policy Management). Foundation v0.1 proof spans M0–M2.
-- **Release 2 (P1):** M6–M8, M10 (Guarded Quarantine & Response, Ransomware Protection, Host Firewall, Vulnerability Management, Application Control, Packaging & Pilot).
+- **Release 2 (P1) feature scope:** M6–M8 (guarded response, ransomware/firewall, vulnerability/application-control work as specified per feature).
+- **Release readiness gates (not product features):** M9–M10 (hardening, packaging and any approved pilot). Pilot topology is To confirm; Docker Compose is development/local-lab only unless a separate deployment decision approves otherwise.
 - **Release 3 (P2):** AI Security Assistant, Advanced Threat Hunting, Cross-source Correlation & Posture Hardening.
 
-**Foundation v0.1 mapping:** this is a narrow release proof spanning roadmap milestones M0–M2 (M0 setup/quality foundation; M1 identity, organization/site and tenant tests; M2 endpoint enrollment, heartbeat and console visibility for one authorized Windows and one Linux lab endpoint). M2's review demonstrates the release; M2 is not itself the entire release. The broader P0 production-oriented roadmap remains separate. Product coding still waits for the docs approval gate above.
+**Proposed Foundation v0.1 mapping (owner freeze required):** this is a narrow proof spanning roadmap milestones M0–M2 (M0 setup/quality foundation; M1 identity and hierarchy tests; M2 endpoint enrollment, heartbeat and console visibility for one authorized Windows and one Linux lab endpoint). Whether login/MFA and which Group/Company/Site administration screens are included remains To confirm in `IMPLEMENTATION-PLAN.md` and ADR-015; do not treat these task labels as approval. M2's review demonstrates the release; M2 is not itself the entire release. The broader P0 roadmap remains separate. Product coding still waits for the docs approval gate above.
 
 ---
 
@@ -125,11 +126,13 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M0-T16` Create CI workflow: lint + unit tests + secret scan + dependency scan.
 - [ ] `M0-T17` Define task tracking: milestones, IDs, labels, PR checklist.
 - [ ] `M0-T18` Record decision status and unresolved items in `docs/decisions/README.md`.
-- [ ] `M0-T19` Milestone review: sign off M0 evidence.
+- [ ] `M0-T19` Review/approve ADR-018 and the Platform/Group/Company/Site permission matrix; leave unresolved cells explicitly denied.
+- [ ] `M0-T20` Resolve ADR-017: standalone incident cases in Release 1 or alert-investigation-only.
+- [ ] `M0-T21` Milestone review: sign off M0 evidence after the documentation gate is approved.
 
 ### M1 — Identity, RBAC & tenancy (Weeks 2–4)
 
-**Definition of Done:** login works, roles enforced server-side, three test organizations (e.g. Akij Group, Boni IT, Nazim Group) onboarded and fully isolated, audit written.
+**Definition of Done (only after docs gate and scope approval):** the approved login scope works, owner-approved roles are enforced server-side, synthetic Test Groups A/B/C with synthetic Companies/Sites are isolated at every hierarchy boundary, and audit evidence is written. Foundation v0.1 login/MFA and administration surfaces remain To confirm; do not copy real customer names/data into fixtures.
 
 **Backend (Python)**
 - [ ] `M1-T01` Scaffold `apps/api-server` as modular monolith (routers per domain).
@@ -139,7 +142,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M1-T05` Implement password hashing with Argon2id.
 - [ ] `M1-T06` Implement login/logout and refresh or session strategy (ADR-backed).
 - [ ] `M1-T07` Implement permission dependency (`require_permission`) used by every route per `PERMISSION-MATRIX.md`.
-- [ ] `M1-T08` Implement hierarchical scoping helpers (Org/Company/Site); reject cross-org and cross-company access.
+- [ ] `M1-T08` Implement approved hierarchical scoping helpers (Group/Company/Site); reject cross-Group, cross-Company and out-of-scope Site access.
 - [ ] `M1-T09` Implement audit-log writer (actor, action, target, before/after, time).
 - [ ] `M1-T10` Add rate limiting on auth endpoints.
 - [ ] `M1-T11` Seed roles: Platform Super Admin, Group Administrator, Group SOC Lead, Company Administrator, Company SOC Analyst, Unit / Site Administrator, Security Administrator, Auditor, Viewer.
@@ -147,32 +150,32 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 **Frontend (TypeScript)**
 - [ ] `M1-T13` Scaffold Next.js app with TypeScript strict + layout shell.
-- [ ] `M1-T14` Build login page with error/loading states.
+- [ ] `M1-T14` Build login page with error/loading states only if login is included in the owner-approved Foundation v0.1 scope.
 - [ ] `M1-T15` Build authenticated layout and sidebar shell per `docs/dashboard/README.md`.
-- [ ] `M1-T16` Build Organization/Company/Site management screens (list, create, edit).
+- [ ] `M1-T16` Build only the Group/Company/Site management screens explicitly included in the owner-approved Foundation v0.1 scope; exact surfaces remain To confirm.
 - [ ] `M1-T17` Build Users & Roles screen (read-only first if needed).
 - [ ] `M1-T18` Add permission-aware UI guards (server remains source of truth).
 
 **Tests**
 - [ ] `M1-T19` Tests: unauthorized role cannot access restricted route.
-- [ ] `M1-T20` Tests: user in org/company A cannot read org/company B data (IDOR, tenant & company isolation).
+- [ ] `M1-T20` Tests: cross-Group/out-of-scope Site access is denied; Company roles cannot access sibling Companies; Group roles receive only explicitly approved aggregates/details.
 - [ ] `M1-T21` Tests: audit record created for create/update actions.
 
 **Multi-organization & Multi-company hosting (owner-approved ADR-009)**
-- [ ] `M1-T22` Organization lifecycle API: create, suspend, reactivate, with platform-level audit.
-- [ ] `M1-T23` Customer onboarding: create Parent Group + first Group Admin + subsidiary Companies + Sites.
+- [ ] `M1-T22` Parent Group lifecycle API: create/update with platform audit; suspension/reactivation remain disabled until ADR-018 defines the `org:suspend` API permission, notice/impact and recovery policy.
+- [ ] `M1-T23` Synthetic onboarding test: create Test Group A + Group Admin + Test Companies + Sites.
 - [ ] `M1-T24` Separate Platform Admin console area from Group/Company Admin area.
 - [ ] `M1-T25` Tenant-scoped audit search: platform view vs group view vs company view.
 - [ ] `M1-T26` Per-organization quotas, rate limits and fair-use monitoring.
 - [ ] `M1-T27` Implement the ADR-010 isolation mechanism after approval (shared schema + RLS vs schema/database-per-tenant).
-- [ ] `M1-T28` Cross-tenant deny tests for every API, worker, search, cache, queue and object-storage path.
+- [ ] `M1-T28` Cross-Group and scoped Company/Site deny tests for every API, worker, search, cache, queue and object-storage path; verify allowed Group rollups expose only approved fields.
 - [ ] `M1-T29` Per-organization export, deletion, retention and legal-hold policy.
-- [ ] `M1-T30` Demo: onboard Akij Group, Boni IT and Nazim Group test organizations and prove isolation.
+- [ ] `M1-T30` Demo: onboard synthetic Test Groups A/B/C with Companies/Sites and prove hierarchy isolation.
 - [ ] `M1-T31` Milestone review.
 
 ### M2 — Endpoint identity & enrollment (Weeks 3–5)
 
-**Definition of Done:** one Windows and one Linux test agent enroll with unique identity and show healthy/online in console; revocation and token expiry tested.
+**Definition of Done:** one Windows and one Linux test agent enroll with unique identity under the approved Group/Company/Site and show authorized healthy/online status; revocation and token expiry tested.
 
 **Backend (Python)**
 - [ ] `M2-T01` Migration: `endpoints`, `agent_credentials`, `agent_heartbeats`, `enrollment_tokens`.
@@ -181,7 +184,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M2-T04` Issue unique agent identity/certificate (dev CA first).
 - [ ] `M2-T05` `POST /api/v1/agents/{endpoint_id}/heartbeat` with auth + health payload.
 - [ ] `M2-T06` `POST /api/v1/agents/renew` for certificate renewal.
-- [ ] `M2-T07` Endpoint list/detail API with org/site scoping and last-seen state.
+- [ ] `M2-T07` Endpoint list/detail API with Group/Company/Site scoping and last-seen state.
 - [ ] `M2-T08` Revocation API + credential invalidation.
 - [ ] `M2-T09` Offline detection: mark stale endpoints via scheduled job.
 
@@ -204,12 +207,12 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M2-T21` Test: reused enrollment token is rejected.
 - [ ] `M2-T22` Test: expired token is rejected.
 - [ ] `M2-T23` Test: revoked agent can no longer heartbeat.
-- [ ] `M2-T24` Lab test: Windows + Linux agents enroll and appear online.
+- [ ] `M2-T24` Lab test: Windows + Linux agents enroll under the correct synthetic Group/Company/Site and appear online only to authorized scopes.
 - [ ] `M2-T25` M2 review; contributes to Foundation v0.1 demo after M0–M2 exit criteria pass.
 
 ### M3 — Telemetry pipeline (Weeks 6–9)
 
-**Definition of Done:** a synthetic process event travels agent → API → queue → normalizer → OpenSearch → console timeline, with dedup and limits.
+**Definition of Done:** approved synthetic process/file events travel agent → API → queue → normalizer → event store → console timeline, with dedup and limits. Network telemetry is not included in this Release 1 task until its release scope and privacy fields are approved.
 
 **Contracts**
 - [ ] `M3-T01` Define Ariba event schema v1 (ECS-compatible subset) in `detection/` + docs.
@@ -230,15 +233,13 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M3-T12` Collector interface: start/stop, bounded buffer, backpressure.
 - [ ] `M3-T13` Linux process collector (auditd or osquery adapter).
 - [ ] `M3-T14` Linux file collector (inotify).
-- [ ] `M3-T15` Linux network collector (connection snapshot/events).
 - [ ] `M3-T16` Windows process collector (ETW + Event Log).
 - [ ] `M3-T17` Windows file collector (ReadDirectoryChangesW / USN).
-- [ ] `M3-T18` Windows network collector (ETW/network events).
 - [ ] `M3-T19` Per-OS resource budget measurement (CPU/RAM/disk queue).
 - [ ] `M3-T20` Offline behavior: queue, resume, no data loss beyond bounded limit.
 
 **Frontend**
-- [ ] `M3-T21` Endpoint timeline view (process/file/network events).
+- [ ] `M3-T21` Endpoint timeline view for approved process/file events only; network events remain out of scope.
 - [ ] `M3-T22` Loading/empty/stale/error state handling.
 
 **Tests**
@@ -249,12 +250,12 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 ### M4 — Detection engine & alerts (Weeks 10–13)
 
-**Definition of Done:** versioned rules evaluate events, produce explainable alerts with ATT&CK context, and the owner-approved alert lifecycle works.
+**Definition of Done:** versioned rules evaluate approved process/file telemetry, produce explainable alerts, the ADR-013-approved alert lifecycle works, and Release 1 on-demand/scheduled scanner integrations meet FR-MAL-01 for approved targets/OS. Standalone incident cases and quarantine remain gated by ADR-017 / Release 2.
 
 **Detection (Python + YAML)**
-- [ ] `M4-T01` Rule schema: ID, severity, platform, telemetry, logic, ATT&CK, FP notes, tests.
+- [ ] `M4-T01` Rule schema: ID, severity, platform, telemetry, logic, FP notes and tests; ATT&CK mapping is optional and Release 2/P1 only when approved provenance exists.
 - [ ] `M4-T02` Rule loader + validator (reject malformed/unsigned production rules).
-- [ ] `M4-T03` Rule evaluator for v1 conditions (process/file/network).
+- [ ] `M4-T03` Rule evaluator for Release 1 process/file conditions only; network condition support is deferred.
 - [ ] `M4-T04` Correlation window support (e.g. repeated events).
 - [ ] `M4-T05` Transparent risk scoring (`Severity × Confidence × Impact`).
 - [ ] `M4-T06` Rule provenance and version recorded on each alert.
@@ -262,37 +263,37 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M4-T08` Rule unit-test harness with synthetic safe fixtures.
 
 **Alerts**
-- [ ] `M4-T09` Migration: `detection_rules`, `security_alerts`, `incidents`.
+- [ ] `M4-T09` Migration: `detection_rules`, `security_alerts`; add `incidents` only if ADR-017 approves a separate case lifecycle.
 - [ ] `M4-T10` Alert creation from detection result; link event reference.
 - [ ] `M4-T11` First approve the alert state machine; candidate states: new, investigating, resolved, false-positive/accepted; then implement permitted transitions + assignment.
-- [ ] `M4-T12` Incident creation and timeline API.
+- [ ] `M4-T12` Defer standalone incident creation/timeline API unless ADR-017 approves it for Release 1; until then alert investigation only.
 
 **Malware integration**
-- [ ] `M4-T13` Scan adapter interface; YARA + ClamAV integration.
-- [ ] `M4-T14` Microsoft Defender status/scan adapter (read/trigger, never disable).
-- [ ] `M4-T15` Quarantine record metadata (no destructive action yet).
+- [ ] `M4-T13` YARA + ClamAV adapter for approved on-demand/scheduled scans; enforce approved targets/resource limits and auditable status/results (FR-MAL-01).
+- [ ] `M4-T14` Microsoft Defender status/scan adapter for supported approved operations only; never disable Defender or expose unapproved remote triggers.
+- [ ] `M4-T15` Defer quarantine records to Release 2; Release 1 scanning may create scan-result/alert metadata only.
 - [ ] `M4-T16` Validate with EICAR in an isolated lab only.
 
 **Frontend**
 - [ ] `M4-T17` Alerts list with severity/status filters.
-- [ ] `M4-T18` Alert detail: evidence, endpoint context, timeline, ATT&CK.
+- [ ] `M4-T18` Alert detail: evidence, endpoint context and timeline; show ATT&CK only when Release 2 mapping is enabled and provenance is recorded.
 - [ ] `M4-T19` Alert status/assignment actions with permission checks.
 - [ ] `M4-T20` Investigation view (event evidence + notes).
 
 **Tests**
 - [ ] `M4-T21` Test: each starter rule fires on its fixture and not on clean data.
-- [ ] `M4-T22` Test: alert contains rule version, evidence and ATT&CK mapping.
+- [ ] `M4-T22` Test: alert contains rule version and evidence; separately test optional ATT&CK mapping only when an approved mapping exists.
 - [ ] `M4-T23` Milestone review (detect → alert demo).
 
 ### M5 — Policy engine (Weeks 14–16)
 
-**Definition of Done:** policies are versioned and signed; agents reject unsigned/tampered policy; ack and rollback are auditable.
+**Definition of Done (blocked on signing/RBAC decisions):** after ADR-018 approves signer authority, author/reviewer separation and key custody, policies are versioned and signed; agents reject unsigned/tampered policy; acknowledgement and rollback are auditable. Do not select Ed25519/minisign or enable signing until the approved cryptographic/key-management design is recorded.
 
 - [ ] `M5-T01` Policy schema (scanning, monitoring, updates, retention knobs).
 - [ ] `M5-T02` Migration: `security_policies`, `policy_assignments`, `policy_versions`.
 - [ ] `M5-T03` Policy authoring API + validation.
 - [ ] `M5-T04` Versioning and approval state.
-- [ ] `M5-T05` Signing pipeline (Ed25519/minisign) and key management plan.
+- [ ] `M5-T05` Implement the owner-approved signing algorithm/service and key-management plan only after ADR-018 resolves signer authority, separation of duties and key custody; Ed25519/minisign are unapproved candidates, not a selection.
 - [ ] `M5-T06` Assignment by org/site/group with staged rollout.
 - [ ] `M5-T07` Acknowledgement tracking and status.
 - [ ] `M5-T08` Rollback to previous signed version.
@@ -308,7 +309,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 - [ ] `M6-T01` Migration: `response_actions` with approval and execution state.
 - [ ] `M6-T02` Action catalog + explicit deny list for unsupported/risky actions.
-- [ ] `M6-T03` Implement only the ADR-014 approval rule (separate requester/approver by default; any exception requires explicit owner approval), with reason required.
+- [ ] `M6-T03` Implement only the requester/approver and exception rules explicitly approved in ADR-014; until decided, keep the workflow disabled. Require an operational reason.
 - [ ] `M6-T04` Target revalidation against recent endpoint context.
 - [ ] `M6-T05` Command expiry and single-use action tokens.
 - [ ] `M6-T06` Command delivery via agent polling (outbound-only) or secure channel.
@@ -325,7 +326,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 - [ ] `M7-T01` Write versioned integration contracts in `docs/architecture/`.
 - [ ] `M7-T02` Wazuh/Ariba SOC event forwarder.
-- [ ] `M7-T03` Wazuh/Ariba SOC response-request handoff with auth.
+- [ ] `M7-T03` Wazuh/Ariba SOC response-request handoff only for an ADR-014-approved action; integration identity cannot bypass EPP permission/approval checks.
 - [ ] `M7-T04` MISP IOC import with dedup and provenance.
 - [ ] `M7-T05` MISP IOC export/feedback.
 - [ ] `M7-T06` OpenSearch index lifecycle and dashboards.
@@ -359,12 +360,12 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M9-T12` Update threat model with findings; close or accept risks.
 - [ ] `M9-T13` Milestone review.
 
-### M10 — Packaging & pilot (Weeks 22–26, P1)
+### M10 — Packaging & pilot readiness gate (Weeks 22–26; release scope to approve)
 
 - [ ] `M10-T01` Windows MSI with service install, signed binary.
 - [ ] `M10-T02` Linux DEB/RPM packages, signed, with systemd unit.
 - [ ] `M10-T03` Agent upgrade and rollback path.
-- [ ] `M10-T04` Pilot Docker Compose deployment with hardened defaults.
+- [ ] `M10-T04` Prepare the pilot topology only after ADR-008/provider/region, tenant-isolation, security and operations reviews; Docker Compose remains development/local-lab only unless a separate decision approves it for pilot use.
 - [ ] `M10-T05` TLS, secrets, backup and monitoring setup.
 - [ ] `M10-T06` Pilot onboarding checklist (authorized endpoints only).
 - [ ] `M10-T07` Rollback and recovery runbook.
@@ -423,7 +424,7 @@ These are not one milestone; add them to every milestone as needed.
 
 ## 6. Suggested first two weeks — documentation only
 
-1. Read the docs index, requirements, architecture, API/data/agent contracts, threat model, tests and deployment plan.
+1. Read the docs index, glossary, requirements, architecture, API/data/agent contracts, permission matrix, threat model, tests and deployment plan.
 2. Resolve and record owner decisions for scope, deployment/tenancy, supported OS, privacy/telemetry, identity/RBAC and response actions.
 3. Cross-check names, priorities, interfaces, state transitions and acceptance criteria across documents.
 4. Approve the exact Foundation v0.1 deliverables and definition of success.

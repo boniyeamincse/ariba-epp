@@ -15,15 +15,15 @@ This decision replaces the earlier open question "single-tenant on-prem vs hoste
 
 1. Ariba EPP is operated as a **centrally hosted platform** reachable over HTTPS. Customers do not run their own EPP control plane in the MVP.
 2. The platform is **multi-organization**: multiple customer organizations share the same platform and infrastructure.
-3. Each customer enterprise/conglomerate is represented by a Parent `organization` tenant (e.g. Akij Group). An organization contains multiple subsidiary `companies` (e.g. Akij Plastic, Akij Piles, Akij Jute), and each company operates multiple `sites` (e.g. Head Office, Factory 01, Depot). Endpoints carry `organization_id`, `company_id`, and `site_id` for zero-join, high-performance hierarchical isolation and group rollup.
+3. Each customer enterprise/conglomerate is represented by a Parent `organization` tenant (e.g. Akij Group). An organization contains subsidiary `companies` (e.g. Akij Plastic, Akij Piles, Akij Jute), and each company operates `sites` (e.g. Head Office, Factory 01, Depot). Endpoint records are intended to retain `organization_id`, `company_id`, and `site_id` to support hierarchical scope and rollups. This is a data-model direction, not a measured zero-join/performance guarantee; referential consistency and indexing require validation.
 4. Every tenant-owned record carries a non-null `organization_id` and, where applicable, `company_id` and `site_id`. Tenant scope is enforced **server-side** on every API, worker, search, cache, queue, object-storage and export path. Submitted tenant IDs are never trusted.
 5. Cross-organization and cross-company reads, writes, deletes and search results are **denied by default** and must have negative tests.
-6. Roles are split hierarchically per [PERMISSION-MATRIX.md](../security/PERMISSION-MATRIX.md):
+6. The product role families follow [PRODUCT-REQUIREMENTS.md](../PRODUCT-REQUIREMENTS.md):
    - **Platform Super Admin** (Ariba): create/suspend organizations, manage global platform settings and integrations. Global actions are audited.
    - **Group Administrator & Group SOC Lead**: manage parent group, roll up security visibility across all subsidiary companies.
    - **Company Administrator & Company SOC Analyst**: manage and monitor only their own company (e.g. Akij Plastic), its sites, users and endpoints. Cross-company access is denied.
    - **Unit / Site Administrator**: local factory/office endpoint enrollment and status.
-   - Analyst, Auditor and Viewer roles are scoped to their permitted group/company/site.
+   - Analyst, Auditor and Viewer roles are intended to be scoped to their assigned group/company/site. The detailed grants in [PERMISSION-MATRIX.md](../security/PERMISSION-MATRIX.md) are a proposal and require owner/security approval before implementation; this ADR does not approve each permission.
 7. **The proposed default direction is logical isolation on a shared platform** (shared schema with organization and company scoping and, as defense in depth, PostgreSQL Row-Level Security if approved). The concrete mechanism remains ADR-010. A dedicated deployment for a customer that requires stronger isolation is a possible future option, not an MVP requirement.
 8. Onboarding a customer creates: the parent organization, its first Group Administrator, default companies/sites where needed, and a tenant-scoped audit entry. No sample customer data is copied between organizations.
 9. Platform-level support access (for example break-glass or support impersonation) is **not** enabled by default and requires an explicit, audited policy with customer consent.

@@ -9,9 +9,10 @@ This repository is in **documentation-first planning**. Do not start implementat
 1. `docs/README.md` — documentation index and status vocabulary.
 2. `docs/IMPLEMENTATION-PLAN.md` — source-of-truth order, open blockers and permitted next step.
 3. `docs/PRODUCT-REQUIREMENTS.md` — goals, non-goals and acceptance criteria.
-4. `docs/architecture/SYSTEM-ARCHITECTURE.md` — component boundaries and flows.
-5. Relevant component contracts: `docs/api/API-CONTRACT.md`, `docs/database/DATA-MODEL.md`, `docs/agent/AGENT-SPECIFICATION.md`, `docs/security/THREAT-MODEL.md`, `docs/testing/TEST-STRATEGY.md`, and `docs/deployment/DEPLOYMENT-PLAN.md`.
-6. `docs/ARIBA-EPP-PRODUCT-IDEA.md` is source input; use it only through the normalized decisions and requirements in the documents above.
+4. `docs/DOMAIN-GLOSSARY.md` — canonical hierarchy, role and status terms.
+5. `docs/architecture/SYSTEM-ARCHITECTURE.md` — component boundaries and flows.
+6. Relevant component contracts: `docs/api/API-CONTRACT.md`, `docs/database/DATA-MODEL.md`, `docs/agent/AGENT-SPECIFICATION.md`, `docs/security/PERMISSION-MATRIX.md`, `docs/security/THREAT-MODEL.md`, `docs/testing/TEST-STRATEGY.md`, and `docs/deployment/DEPLOYMENT-PLAN.md`. For UI tasks also read `docs/dashboard/README.md` and the selected role page.
+7. `docs/ARIBA-EPP-PRODUCT-IDEA.md` is source input; use it only through the normalized decisions and requirements in the documents above.
 
 ## Source-of-truth and conflict rules
 
@@ -19,6 +20,7 @@ This repository is in **documentation-first planning**. Do not start implementat
 - `Approved` is a product-owner decision. `Proposed` is not approval; `To confirm` is unresolved.
 - If two normative docs conflict, stop and report the exact conflict. Do not choose whichever is easiest to code.
 - Never infer production OS support, event fields, retention, tenant rules, response permissions, or compliance status.
+- The permission matrix is a draft: `Proposed`/`To confirm` grants are denied until owner/security approval. Do not copy grants from legacy Org Admin/SOC L1/SOC L2 tables into the current Group/Company/Site roles.
 - Do not copy malformed HTML/CSS Mermaid render output from source material; use valid Markdown and Mermaid source.
 
 ## Implementation rules after approval

@@ -11,7 +11,7 @@
 ---
 
 ## 1. Role Purpose & Authority
-The Tier 1 SOC Analyst reviews assigned-scope detections and records triage context. Alert assignment/false-positive marking wait for ADR-013 and the canonical RBAC permission; incident creation also depends on approval of a separate incident-case scope/lifecycle.
+The Tier 1 SOC Analyst reviews assigned-scope detections and records triage context. Alert assignment/false-positive marking wait for ADR-013 and ADR-018; incident creation also depends on ADR-017 approval of a separate case scope/lifecycle.
 
 > [!NOTE]
 > SOC Analyst L1 has read-only access to endpoint context and evidence explicitly authorized for the assigned tenant/site. They cannot browse endpoint files or execute any disruptive response action. Claim/assign/comment/disposition are state-changing operations and remain disabled until ADR-013 defines transitions and the role permission matrix is approved.
@@ -26,7 +26,7 @@ ARIBA EPP
 ├── Detection & Response
 │   ├── Threat Detection (Release 1; only validated, authorized event summaries)
 │   ├── Alerts (Release 1; read-only until ADR-013 and permissions are approved)
-│   └── Incident Cases (standalone case lifecycle To confirm; use alert investigation until approved)
+│   └── Incident Cases (standalone case lifecycle To confirm in ADR-017; use alert investigation until approved)
 ├── Endpoint Management (Read-Only)
 │   ├── All Endpoints (Basic inventory & connectivity context)
 │   └── Agent Health (Inspect reporting delays or offline states)
@@ -59,7 +59,7 @@ ARIBA EPP
    - An on-demand scan request may be offered only when Release 1 scanner support exists, with `response:scan`, authorized scope, user confirmation and audit; it is not a disruptive response action.
 3. **Disposition & Escalation:**
    - Proposed dispositions (false positive, informational, escalate) must follow the ADR-013 state machine and permission matrix. Until approved, show details read-only and do not render mutation buttons.
-   - Incident creation/assignment is unavailable until a separate incident-case scope/lifecycle is approved; then it requires an audit reason and tenant-scoped `incident:create` permission. Escalation never implies a response action.
+   - Incident creation/assignment is unavailable until ADR-017 approves a separate case scope/lifecycle and ADR-018 approves the role grant; escalation never implies a response action.
 
 ## 5. Safety and accessibility
 

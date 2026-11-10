@@ -30,7 +30,7 @@ ARIBA EPP
 ├── Dashboard (Investigation Overview)
 ├── Detection & Response
 │   ├── Alerts (Full investigative detail & evidence links)
-│   ├── Incident Cases (standalone case lifecycle To confirm; priority/SLA definitions also To confirm)
+│   ├── Incident Cases (standalone case lifecycle To confirm in ADR-017; priority/SLA definitions also To confirm)
 │   ├── Investigation (Release 1 process/event timeline from collected data; historical query builder is Release 3 / P2)
 │   └── Response Actions (Release 2; read-only status view only if approved; no command control)
 ├── Protection
@@ -46,7 +46,7 @@ ARIBA EPP
 
 | Widget ID / status | Widget | Proposed source / scope | Definition / freshness |
 |---|---|---|---|
-| L2D-01 · To confirm | Active Incident Cases | Incident records; assigned organization/sites | Show only if a separate case lifecycle is approved; priority labels and SLA timers are To confirm |
+| L2D-01 · To confirm (ADR-017) | Active Incident Cases | Incident records; assigned Group/Company scope | Show only if a separate case lifecycle is approved; priority labels and SLA timers are To confirm |
 | L2D-02 · Release 2 / ADR-014 | Pending Approvals | Response workflow; assigned scope | Hidden until ADR-014 defines approval states; read-only status, never approve via a summary shortcut |
 | L2D-03 · Release 2 / ADR-014 | Isolated Endpoints | Response outcome; assigned scope | Hidden until isolation is approved/implemented; no quick “Release” control |
 | L2D-04 · Release 1 | Investigation Timeline | Process/file event evidence authorized for assigned scope | Preserve event and ingestion times, source and missing-data gaps; no fabricated sequence |
@@ -69,7 +69,7 @@ ARIBA EPP
 4. **Remediation & Incident Closure:**
    - Verify threat containment.
    - Endpoint release is a separate privileged action; no quick-release control. It requires the same authorization, target validation, audit and recovery controls as isolation.
-   - Document investigation findings. Closing an incident case is available only if a separate case lifecycle is approved and the user has `incident:close`.
+   - Document investigation findings. Closing an incident case is available only if ADR-017 approves the case lifecycle and ADR-018 approves the user's `incident:close` grant.
 
 ## 5. Response UI release gate
 

@@ -5,9 +5,9 @@ Security design, privacy and safeguarding material.
 Documents:
 
 - [Threat Model](THREAT-MODEL.md) — assets, trust boundaries, threat scenarios and controls.
-- [RBAC & Tenant Permission Matrix](PERMISSION-MATRIX.md) — canonical role definitions, granular permissions, tenant scoping and server-side enforcement.
+- [RBAC & Hierarchical Permission Matrix](PERMISSION-MATRIX.md) — draft current-role permission codes and Group/Company/Site scope; unapproved grants remain denied.
 
-Planned contents:
+Other security documentation to complete before pilot:
 
 - Authentication, MFA, RBAC and tenant/site authorization.
 - Agent identity, mutual TLS, certificate lifecycle and secret rotation.

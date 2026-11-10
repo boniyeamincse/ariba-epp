@@ -1,6 +1,6 @@
 # Ariba EPP — Documentation Gate and Implementation Plan
 
-**Status:** Documentation pack in progress; implementation is blocked pending owner review.  
+**Status:** Documentation pack prepared for owner review; implementation remains blocked pending approval and listed decisions.
 **Purpose:** Give a future developer/AI a deterministic reading order, task sequence and completion contract.
 
 ## 1. Docs-first workflow
@@ -9,24 +9,25 @@ The owner wants documentation completed before coding. Follow these gates:
 
 1. **Capture:** keep the original owner source in `ARIBA-EPP-PRODUCT-IDEA.md`; normalize requirements into the canonical docs below.
 2. **Review:** owner reviews requirements, architecture, API/data contracts, agent/security behavior, test plan and deployment boundaries.
-3. **Resolve blockers:** decide the high-impact items listed in §4. Use `Approved`, `Proposed` or `To confirm`; no implicit approval.
+3. **Resolve blockers:** decide the high-impact items listed in §4. Reconcile and approve the Group/Company/Site RBAC matrix and alert/incident scope. Use `Approved`, `Proposed` or `To confirm`; no implicit approval.
 4. **Freeze Foundation v0.1:** confirm exact deliverables and acceptance criteria.
 5. **Implement one phase at a time:** inspect the repo, implement only the approved task, keep tests/docs synchronized and report evidence.
 6. **Verify:** run the relevant test and security checks; update status only from evidence.
 
-**Current gate:** Gate 1/Review — the documents are drafts and owner review is required. Do not start code from this plan until the user explicitly selects/approves the milestone.
+**Current gate:** Gate 1/Owner Review — the documentation set is drafted, but key decisions and the permission matrix remain `To confirm`. Do not start product code from this plan until the owner explicitly approves the documentation gate and selects a milestone.
 
 ## 2. Document authority order
 
 When two documents appear to disagree, use this order and stop on unresolved conflicts:
 
-1. Owner-approved decision recorded in [the ADR register](decisions/README.md) (decision log/ADR).
-2. `docs/PRODUCT-REQUIREMENTS.md` for product behavior, scope and acceptance.
-3. Component contract: API, data model, agent specification, threat model, test strategy or deployment plan.
-4. `docs/architecture/SYSTEM-ARCHITECTURE.md` for component boundaries and flows.
-5. `docs/ARIBA-EPP-BLUEPRINT.md` and `docs/ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md` for product direction/detail.
-6. `docs/PROJECT-TASKS.md` is the detailed task-ID/checklist ledger only; it cannot override requirements or security contracts.
-7. `docs/ARIBA-EPP-PRODUCT-IDEA.md` is source input only; examples/ideas there do not override approved requirements.
+1. Owner-approved decision recorded in [the ADR register](decisions/README.md) or an approved, versioned security/product contract.
+2. `docs/PRODUCT-REQUIREMENTS.md` for product behavior, release scope and acceptance.
+3. `docs/DOMAIN-GLOSSARY.md` for canonical role/hierarchy/status terminology.
+4. Component contract: API, data model, agent specification, RBAC/permission matrix, threat model, test strategy or deployment plan. The permission matrix is currently a draft; proposed grants are deny-by-default.
+5. `docs/architecture/SYSTEM-ARCHITECTURE.md` for component boundaries and flows.
+6. `docs/ARIBA-EPP-BLUEPRINT.md` and `docs/ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md` for product direction/detail.
+7. `docs/PROJECT-TASKS.md` is the detailed task-ID/checklist ledger only; it cannot override requirements or security contracts.
+8. `docs/ARIBA-EPP-PRODUCT-IDEA.md` is source input only; examples/ideas there do not override approved requirements.
 
 The ADR register is a proposal index only. No ADR is approved until the owner records an explicit decision/status there.
 
@@ -55,14 +56,18 @@ Do not silently choose values for these:
 
 1. Supported Windows builds, Linux distributions and kernels.
 2. Hosting provider/region, data residency and operational targets for the centrally hosted multi-organization platform approved in ADR-009.
-3. Identity provider, MFA and exact role/site permission matrix.
+3. Identity provider/MFA and exact Platform/Group/Company/Site permission matrix in `docs/security/PERMISSION-MATRIX.md` (ADR-018).
 4. Agent telemetry allowlist, personal data treatment, retention, deletion and residency.
 5. Heartbeat cadence/stale thresholds, event volume/EPS, target retention, availability and recovery objectives.
-6. Which exact features ship in Foundation v0.1 versus later P0/P1/P2 phases.
+6. Which login/MFA and Group/Company/Site administration surfaces are included in Foundation v0.1; the Release 1/2/3 feature matrix is separately owner-confirmed in `PRODUCT-REQUIREMENTS.md`.
 7. Whether any response action is included in first pilot and its action-specific approval rules; observe-only is default until ADR-014 and action scope are approved.
-8. Selected frameworks, libraries, broker, event store, scanner engines and commercial licenses.
-9. API/event/policy schema compatibility and versioning rules.
-10. Supported languages/UI design/accessibility expectations.
+8. Whether standalone incident cases are in Release 1 or only alert investigation; define lifecycle and permissions in ADR-017 before implementing incident endpoints/UI.
+9. Alert states/transitions and false-positive disposition (ADR-013), and whether ATT&CK enrichment remains Release 2/P1 as currently specified.
+10. Release 1 scan targets/scheduling controls/resource limits and role/scope permissions (FR-MAL-01, ADR-014 and ADR-018).
+11. Policy signer authority, author/reviewer separation, signing service/algorithm and key custody (ADR-018); do not select an unapproved implementation.
+12. Selected frameworks, libraries, broker, event store, scanner engines and commercial licenses.
+13. API/event/policy schema compatibility and versioning rules.
+14. Supported languages/UI design/accessibility expectations.
 
 ## 5. AI implementation contract
 
