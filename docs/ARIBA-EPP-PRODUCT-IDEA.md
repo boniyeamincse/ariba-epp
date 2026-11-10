@@ -1,5 +1,7 @@
 # Ariba EPP — Enterprise Endpoint Protection Platform
 
+> **Source material only:** this is the original idea/pasted reference, retained for context. Its recommendations, estimates, examples and embedded checklists are not implementation approval or the active task ledger. Follow `IMPLEMENTATION-PLAN.md`, `PRODUCT-REQUIREMENTS.md`, approved ADRs and the canonical `PROJECT-TASKS.md` instead. Do not copy malformed HTML/CSS Mermaid render output as diagram source.
+
 Enterprise Architecture
 
 Hybrid EPP

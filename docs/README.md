@@ -7,7 +7,8 @@
 - [Ariba EPP Product Blueprint](ARIBA-EPP-BLUEPRINT.md) — vision, feature modules, MVP boundary, architecture direction, security principles, roadmap এবং open decisions।
 - [Ariba EPP Enterprise Architecture](ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md) — সংযুক্ত enterprise blueprint-এর বিস্তারিত architecture, modules, endpoint agent, data/API, policy/detection, security, delivery roadmap এবং প্রথম milestone।
 - [Product Requirements](PRODUCT-REQUIREMENTS.md) — personas, goals/non-goals, testable functional requirements, quality attributes ও acceptance criteria।
-- [Implementation Plan](IMPLEMENTATION-PLAN.md) — docs approval gate, dependency-ordered backlog, milestone DoD ও AI handoff protocol।
+- [Implementation Plan](IMPLEMENTATION-PLAN.md) — docs approval gate, task-source order, milestone DoD ও AI handoff protocol।
+- [ADR Register](decisions/README.md) — unique decision IDs, status and canonical ADR location.
 - [System Architecture](architecture/SYSTEM-ARCHITECTURE.md) — architecture boundaries, runtime/data flows, failure behavior ও decisions to confirm।
 - [API Contract](api/API-CONTRACT.md) — proposed management/agent endpoints, authorization, payloads, errors and lifecycle rules।
 - [Data Model](database/DATA-MODEL.md) — entities, tenant ownership, storage boundaries, retention and integrity constraints।
@@ -17,6 +18,7 @@
 - [Deployment Plan](deployment/DEPLOYMENT-PLAN.md) — dev/lab/pilot/production boundaries, hardening, observability and recovery.
 - [Ariba EPP Product Idea](ARIBA-EPP-PRODUCT-IDEA.md) — owner-এর দেওয়া মূল product concept (source material)।
 - [Project Task List & Roadmap](PROJECT-TASKS.md) — M0–M10 milestone, step-by-step small tasks, language plan এবং tracking workflow।
+- [Decision Log](decisions/README.md) — owner-approved ADR; ADR-009 centrally hosted multi-organization tenancy।
 
 ## Subdirectories
 

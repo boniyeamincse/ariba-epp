@@ -63,6 +63,8 @@ erDiagram
 
 ## 4. Tenant isolation rules
 
+**Approved product model:** centrally hosted multi-organization platform with one organization tenant per customer and multiple sites per organization (ADR-009). **Not yet decided:** concrete database/index/object-store isolation mechanism (ADR-010), hosting region, residency, quotas and retention.
+
 - Every tenant-owned row has a non-null `organization_id` directly or through a verified parent relation.
 - Service authorization uses authenticated principal scope; never trust submitted tenant IDs.
 - Unique constraints include tenant scope when identifiers are not globally unique.

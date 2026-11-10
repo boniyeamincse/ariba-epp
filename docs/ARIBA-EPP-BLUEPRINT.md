@@ -92,7 +92,7 @@ Priority labels are planning scope: P0 = first production-oriented MVP foundatio
 - Secure enrollment, endpoint identity, heartbeat এবং agent health.
 - Basic hardware/software inventory ও last-seen status.
 - Policy assignment/read status, initial policy set সীমিত রাখা।
-- Security event ingest, basic detection rules, alert lifecycle (new, investigating, resolved).
+- Security event ingest, basic detection rules and an alert lifecycle; the state machine and transitions await owner approval in ADR-013.
 - Alert detail-এ event source, timestamp, endpoint context, severity/reason এবং investigation history.
 - RBAC, administrator/analyst roles, audit trail.
 - Docker-based development deployment; production topology আলাদা security review ও deployment plan দাবি করে।
@@ -211,7 +211,7 @@ Overview cards may show total, protected, online and alert counts. Any sample su
 
 ## 10. Development roadmap
 
-Order below is a validated delivery direction, while dates and estimates remain planning estimates until team capacity and acceptance tests are confirmed. The detailed 26-week illustrative sequence and initial 10-task checklist are in [Ariba EPP Enterprise Architecture](ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md).
+Order below is a proposed delivery direction; dates and estimates remain planning estimates until team capacity and acceptance tests are confirmed. The sole detailed M0–M10 implementation checklist is [Project Task List](PROJECT-TASKS.md); the docs approval gate is in [Implementation Plan](IMPLEMENTATION-PLAN.md).
 
 | Phase | Deliverable | Exit evidence |
 |---|---|---|
@@ -255,7 +255,7 @@ deployment/           # development and production deployment assets
 6. Which telemetry is acceptable to collect, and what are the tenant/data residency requirements?
 7. Which detection/scanning integrations are approved, licensed and supportable?
 8. Which response action, if any, is required in the first pilot? Should MVP remain observe-only?
-9. What deployment model is required: on-premises, private cloud, managed SaaS, or a combination?
+9. Which provider/region, data residency and production topology should the centrally hosted multi-organization platform use (the hosted model is approved in ADR-009)?
 10. Which languages are required for the initial console and alert explanations (Bangla, English, or both)?
 
 ## 13. Source and confidence notes

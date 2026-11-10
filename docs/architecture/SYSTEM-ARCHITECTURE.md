@@ -70,18 +70,7 @@ No availability, throughput, latency, endpoint maximum or retention SLO is appro
 
 ## 6. Architecture decisions to record
 
-Create an ADR in `docs/decisions/` for each owner-approved decision. Initial proposed decisions:
-
-| ADR | Topic | Current direction | Status |
-|---|---|---|---|
-| ADR-001 | Application topology | Modular monolith + scalable workers before microservices | Proposed |
-| ADR-002 | Control-plane data | PostgreSQL | Proposed |
-| ADR-003 | Event search | OpenSearch candidate; validate operations/retention | Proposed |
-| ADR-004 | Agent language | Go candidate | Proposed |
-| ADR-005 | Backend/UI | FastAPI and Next.js candidates; inspect repo before selection | Proposed |
-| ADR-006 | Broker | RabbitMQ candidate; compare requirements before selection | Proposed |
-| ADR-007 | Endpoint prevention | Integrate OS/native mature engines first; don't disable existing protection | Proposed |
-| ADR-008 | Deployment | Docker Compose for development only; production topology separately approved | Proposed |
+The [ADR Register](../decisions/README.md) is the single source for decision IDs and status. ADR-009, [centrally hosted multi-organization platform](../decisions/ADR-009-hosted-multi-tenant.md), is owner-approved. Concrete data isolation, region/residency, identity, response approval and event-retention details remain separate pending decisions; do not reuse ADR-009 for those topics.
 
 ## 7. Architecture acceptance checklist
 

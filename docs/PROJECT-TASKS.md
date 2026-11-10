@@ -1,3 +1,4 @@
+**Release mapping:** Foundation v0.1 spans roadmap milestones M0–M2: M0 approved setup/quality foundation, M1 identity + organization/site + tenant tests, and M2 endpoint enrollment/heartbeat/console visibility. The M2 review demonstrates the release; M2 is not itself named “Milestone 01.”
 # Ariba EPP — Project Task List, Milestones and Language Plan
 
 **Status:** Planning checklist. Nothing below is implemented yet. All technology entries are **Proposed** until owner approval/ADR.
@@ -84,13 +85,15 @@ Using the right language per layer is normal for security products. The rule is:
 | M3 | Telemetry pipeline | Events flow from agent to searchable store | Synthetic event is queryable end-to-end | Weeks 6–9 |
 | M4 | Detection & alerts | Versioned rules produce explainable alerts | Safe test event → traceable alert with ATT&CK context | Weeks 10–13 |
 | M5 | Policy engine | Signed, versioned policies with acknowledgement | Agent applies only signed policy; rollback tested | Weeks 14–16 |
-| M6 | Guarded response | Approved, audited, expiring endpoint actions | Lab kill/quarantine/isolate with full audit + rollback | Weeks 15–17 |
+| M6 | Guarded response prototype | One owner-approved, audited, expiring endpoint action | Isolated-lab evidence plus recovery; remaining actions stay denied | Weeks 15–17 |
 | M7 | Integrations | Wazuh, MISP, OpenSearch, notifications | Versioned contract tests and failure handling | Weeks 18–21 |
 | M8 | Inventory & vulnerability | Software inventory + CVE context | Inventory and findings visible per endpoint | Weeks 18–21 |
 | M9 | Hardening & security validation | Threat-model-driven tests and independent review | Security checklist + load/backup/migration evidence | Weeks 22–24 |
 | M10 | Packaging & pilot | Signed installers, pilot deployment, runbooks | Pilot rollback plan + known limitations approved | Weeks 22–26 |
 
-**P0 (must for MVP):** M0–M6 core, M9. **P1:** M7–M8, M10. **P2 (later):** application control, firewall, AI assistant, macOS/mobile.
+**P0 (broader production-oriented MVP roadmap):** M0–M6 core, M9. **P1:** M7–M8, M10. **P2 (later):** application control, firewall, AI assistant, macOS/mobile.
+
+**Foundation v0.1 mapping:** this is a narrow release proof spanning roadmap milestones M0–M2 (M0 setup/quality foundation; M1 identity, organization/site and tenant tests; M2 endpoint enrollment, heartbeat and console visibility for one authorized Windows and one Linux lab endpoint). M2's review demonstrates the release; M2 is not itself the entire release. The broader P0 production-oriented roadmap remains separate. Product coding still waits for the docs approval gate above.
 
 ---
 
@@ -102,15 +105,15 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 **Definition of Done:** repo usable, decisions recorded, local stack boots, CI enforces lint + tests.
 
-- [ ] `M0-T01` Confirm product name, audience (internal SOC vs external customers) and deployment model.
+- [ ] `M0-T01` Confirm final product name and first audience (hosted multi-organization customers; deployment model approved in ADR-009).
 - [ ] `M0-T02` Confirm supported Windows builds and Linux distros/kernels for the pilot.
 - [ ] `M0-T03` Decide console strategy: separate Next.js app vs reuse Ariba SOC frontend.
 - [ ] `M0-T04` Confirm whether FastAPI/Go/PostgreSQL/OpenSearch/RabbitMQ match team skills and constraints.
-- [ ] `M0-T05` Write ADR-001: modular monolith + independently scalable workers.
-- [ ] `M0-T06` Write ADR-002: agent language = Go, and the telemetry schema strategy.
-- [ ] `M0-T07` Write ADR-003: tenant-isolation model (service-layer filtering vs PostgreSQL RLS).
-- [ ] `M0-T08` Write ADR-004: agent identity = certificate/mTLS + one-time enrollment token.
-- [ ] `M0-T09` Write ADR-005: event schema versioning and retention.
+- [ ] `M0-T05` Owner-review ADR-001: modular monolith + independently scalable workers.
+- [ ] `M0-T06` Owner-review ADR-004: agent language/OS collector strategy (Go is a candidate).
+- [ ] `M0-T07` Owner-review ADR-010: concrete tenant-isolation mechanism; preserve ADR-009's approved hosted organization model.
+- [ ] `M0-T08` Owner-review ADR-011: agent identity/enrollment (certificate/mTLS + one-time token candidate).
+- [ ] `M0-T09` Owner-review ADR-012: event schema versioning and retention.
 - [ ] `M0-T10` Produce initial threat model (trust boundaries, assets, attacker goals).
 - [ ] `M0-T11` Create `.env.example` values and secret-handling rules (no real secrets).
 - [ ] `M0-T12` Build `docker-compose.dev.yml`: PostgreSQL, Redis, RabbitMQ, OpenSearch, API, console.
@@ -119,12 +122,12 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M0-T15` Add agent tooling: `golangci-lint`, `go vet`, `go test` targets.
 - [ ] `M0-T16` Create CI workflow: lint + unit tests + secret scan + dependency scan.
 - [ ] `M0-T17` Define task tracking: milestones, IDs, labels, PR checklist.
-- [ ] `M0-T18` Record open decisions in `docs/architecture/open-decisions.md`.
+- [ ] `M0-T18` Record decision status and unresolved items in `docs/decisions/README.md`.
 - [ ] `M0-T19` Milestone review: sign off M0 evidence.
 
 ### M1 — Identity, RBAC & tenancy (Weeks 2–4)
 
-**Definition of Done:** login works, roles enforced server-side, tenant data isolated, audit written.
+**Definition of Done:** login works, roles enforced server-side, three test organizations (e.g. Akij Group, Boni IT, Nazim Group) onboarded and fully isolated, audit written.
 
 **Backend (Python)**
 - [ ] `M1-T01` Scaffold `apps/api-server` as modular monolith (routers per domain).
@@ -152,7 +155,18 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M1-T19` Tests: unauthorized role cannot access restricted route.
 - [ ] `M1-T20` Tests: user in org A cannot read org B data (IDOR + tenant).
 - [ ] `M1-T21` Tests: audit record created for create/update actions.
-- [ ] `M1-T22` Milestone review.
+
+**Multi-organization hosting (owner-approved ADR-009)**
+- [ ] `M1-T22` Organization lifecycle API: create, suspend, reactivate, with platform-level audit.
+- [ ] `M1-T23` Customer onboarding: create organization + first Organization Admin + default sites.
+- [ ] `M1-T24` Separate Platform Admin console area from Organization Admin area.
+- [ ] `M1-T25` Tenant-scoped audit search: platform view vs organization view.
+- [ ] `M1-T26` Per-organization quotas, rate limits and fair-use monitoring.
+- [ ] `M1-T27` Implement the ADR-010 isolation mechanism after approval (shared schema + RLS vs schema/database-per-tenant).
+- [ ] `M1-T28` Cross-tenant deny tests for every API, worker, search, cache, queue and object-storage path.
+- [ ] `M1-T29` Per-organization export, deletion, retention and legal-hold policy.
+- [ ] `M1-T30` Demo: onboard Akij Group, Boni IT and Nazim Group test organizations and prove isolation.
+- [ ] `M1-T31` Milestone review.
 
 ### M2 — Endpoint identity & enrollment (Weeks 3–5)
 
@@ -189,7 +203,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M2-T22` Test: expired token is rejected.
 - [ ] `M2-T23` Test: revoked agent can no longer heartbeat.
 - [ ] `M2-T24` Lab test: Windows + Linux agents enroll and appear online.
-- [ ] `M2-T25` Milestone review (Milestone 01 demo).
+- [ ] `M2-T25` M2 review; contributes to Foundation v0.1 demo after M0–M2 exit criteria pass.
 
 ### M3 — Telemetry pipeline (Weeks 6–9)
 
@@ -233,7 +247,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 
 ### M4 — Detection engine & alerts (Weeks 10–13)
 
-**Definition of Done:** versioned rules evaluate events, produce explainable alerts with ATT&CK context, and alert lifecycle works.
+**Definition of Done:** versioned rules evaluate events, produce explainable alerts with ATT&CK context, and the owner-approved alert lifecycle works.
 
 **Detection (Python + YAML)**
 - [ ] `M4-T01` Rule schema: ID, severity, platform, telemetry, logic, ATT&CK, FP notes, tests.
@@ -248,7 +262,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 **Alerts**
 - [ ] `M4-T09` Migration: `detection_rules`, `security_alerts`, `incidents`.
 - [ ] `M4-T10` Alert creation from detection result; link event reference.
-- [ ] `M4-T11` Alert lifecycle API: new → investigating → resolved (+ assignment).
+- [ ] `M4-T11` First approve the alert state machine; candidate states: new, investigating, resolved, false-positive/accepted; then implement permitted transitions + assignment.
 - [ ] `M4-T12` Incident creation and timeline API.
 
 **Malware integration**
@@ -286,24 +300,24 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M5-T12` Tests: tampered/unsigned policy rejected; rollback audited.
 - [ ] `M5-T13` Milestone review.
 
-### M6 — Guarded response (Weeks 15–17, lab only)
+### M6 — Guarded response prototype (Weeks 15–17, only after action approval; lab only)
 
-**Definition of Done:** an approved action (kill/quarantine/isolate) executes on a lab endpoint with authorization, expiry, audit and rollback; unsupported actions default-deny.
+**Definition of Done:** one specific action explicitly selected by the owner/security reviewer under ADR-014 executes on an isolated lab endpoint with authorization, expiry, audit and recovery. Kill, quarantine and isolation are candidates, not an approved bundle. Unsupported/unapproved actions remain absent or default-deny.
 
 - [ ] `M6-T01` Migration: `response_actions` with approval and execution state.
 - [ ] `M6-T02` Action catalog + explicit deny list for unsupported/risky actions.
-- [ ] `M6-T03` Approval workflow (requester ≠ approver where possible), reason required.
+- [ ] `M6-T03` Implement only the ADR-014 approval rule (separate requester/approver by default; any exception requires explicit owner approval), with reason required.
 - [ ] `M6-T04` Target revalidation against recent endpoint context.
 - [ ] `M6-T05` Command expiry and single-use action tokens.
 - [ ] `M6-T06` Command delivery via agent polling (outbound-only) or secure channel.
-- [ ] `M6-T07` Agent handlers: kill process, quarantine file, isolate network.
-- [ ] `M6-T08` Isolation preserves a narrow management/recovery channel.
+- [ ] `M6-T07` Implement only the single owner-approved action handler; keep all other action handlers absent/default-deny.
+- [ ] `M6-T08` If and only if endpoint isolation is the approved action, prove a narrow management/recovery channel before any lab test; otherwise defer this task.
 - [ ] `M6-T09` Result reporting and completion/failure states.
 - [ ] `M6-T10` Release/restore procedures and rollback.
 - [ ] `M6-T11` Audit every step (who, when, why, target, result).
 - [ ] `M6-T12` UI: request, approve, track, and view audit.
 - [ ] `M6-T13` Lab tests: unauthorized user blocked; expiry respected; rollback works.
-- [ ] `M6-T14` Milestone review (guarded-response demo, lab only).
+- [ ] `M6-T14` M6 review (guarded-response demo, isolated lab only; only after ADR-014/action approval).
 
 ### M7 — Integrations (Weeks 18–21)
 
@@ -355,7 +369,10 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M10-T08` Known-limitations document (explicitly not full AV).
 - [ ] `M10-T09` Support and incident-response runbook.
 - [ ] `M10-T10` Pilot acceptance test and sign-off.
-- [ ] `M10-T11` Milestone review / release retrospective.
+- [ ] `M10-T11` Choose hosting provider/region, domain and TLS for the central platform.
+- [ ] `M10-T12` Per-organization backup/restore and tenant-integrity test.
+- [ ] `M10-T13` Document data residency, quotas and support-access policy before first external customer.
+- [ ] `M10-T14` Milestone review / release retrospective.
 
 ---
 
@@ -402,19 +419,19 @@ These are not one milestone; add them to every milestone as needed.
 
 ---
 
-## 6. Suggested first two weeks (concrete start)
+## 6. Suggested first two weeks — documentation only
 
-1. `M0-T01`–`M0-T05`: confirm scope, name, platforms and record ADR-001/002.
-2. `M0-T10`: draft threat model.
-3. `M0-T12`–`M0-T16`: local stack + lint/test CI.
-4. `M1-T01`–`M1-T03`: API skeleton and first migrations.
-5. `M1-T05`–`M1-T07`: login + permission dependency.
-6. `M1-T13`–`M1-T15`: console shell + login page.
-7. Demo: log in, create org/site, see audit record.
+1. Read the docs index, requirements, architecture, API/data/agent contracts, threat model, tests and deployment plan.
+2. Resolve and record owner decisions for scope, deployment/tenancy, supported OS, privacy/telemetry, identity/RBAC and response actions.
+3. Cross-check names, priorities, interfaces, state transitions and acceptance criteria across documents.
+4. Approve the exact Foundation v0.1 deliverables and definition of success.
+5. Mark the docs gate approved; only then begin M0 implementation/tooling tasks.
+
+No coding demo is part of this documentation-only period.
 
 ---
 
-## 7. Language decision summary (one line each)
+## 7. Language decision summary (one line each; proposed)
 
 - **Python** — control plane, workers, detection, integrations.
 - **TypeScript** — web console.

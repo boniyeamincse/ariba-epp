@@ -70,7 +70,7 @@
 
 - A privileged endpoint agent can create system risk if buggy, compromised or updated unsafely; independent review and staged rollout are needed.
 - Telemetry coverage and prevention effectiveness vary by OS version and configuration; no universal coverage claim is permitted.
-- Tenant architecture, hosted deployment and data residency are unresolved.
+- Centrally hosted multi-organization deployment is approved in ADR-009; provider/region, data residency and concrete tenant-isolation mechanism remain unresolved.
 - Isolation's exact network-control mechanism and recovery path are unresolved.
 - Signing key custody and emergency rotation mechanism are unresolved.
 - Regulatory/compliance scope is not specified; do not claim compliance.

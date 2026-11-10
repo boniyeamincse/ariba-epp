@@ -66,6 +66,7 @@ Do not disclose cross-tenant record existence in error messages. Common HTTP beh
 | GET | `/inventory/software` | Scoped inventory reader | Software inventory |
 | GET | `/vulnerabilities` | Scoped security reader | Vulnerability findings |
 | POST | `/iocs` | Threat-intel administrator/integration | Import IOC with provenance |
+The authoritative alert state machine and allowed transitions are **To confirm** in ADR-013. Candidate states are listed in `PRODUCT-REQUIREMENTS.md`; do not implement alert state mutation until ADR-013 and matching requirements/tasks are approved.
 
 ## 4. Enrollment contract sketch
 
@@ -132,7 +133,7 @@ Command lines, file paths, user identifiers and network details can be sensitive
 
 ## 7. Response request contract (later, guarded)
 
-Request must include `endpoint_id`, supported `action_type`, exact target reference, request reason, idempotency key and client confirmation/approval reference where applicable. Server records authenticated actor and derives tenant scope. Never accept arbitrary shell/script text as a response action.
+Request must include `endpoint_id`, supported `action_type`, exact target reference, request reason, idempotency key and approval reference required by ADR-014. Approval requirements, requester/approver separation and any exception are **To confirm**; until ADR-014 is approved, response endpoints are specification-only and implementation is blocked. Server records authenticated actor and derives tenant scope. Never accept arbitrary shell/script text as a response action.
 
 ```json
 {

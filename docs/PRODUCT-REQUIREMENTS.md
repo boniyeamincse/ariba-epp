@@ -24,6 +24,12 @@ Organizations need a central view of endpoint security posture and a controlled 
 
 MFA provider and exact role permissions are **To confirm**. Enforcement must be server-side, not only hidden in UI.
 
+### Deployment and tenancy model (owner-approved 2026-11-09)
+
+Ariba EPP is a **centrally hosted multi-organization platform**: multiple customer organizations (for example Akij Group, Boni IT, Nazim Group) share one platform, and each customer is an `organization` tenant with its own sites, users, endpoints, policies, alerts and audit history. Platform Administrators manage organizations; Organization Administrators manage only their own organization. Cross-organization access is denied by default.
+
+See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md). Hosting region, data residency, isolation mechanism, per-tenant quotas/retention and billing remain **To confirm**.
+
 ## 3. Goals and non-goals
 
 ### Goals
@@ -57,7 +63,7 @@ Long-term product capabilities use EPP-01 through EPP-14 priorities in the [Ente
 5. Endpoint status in console.
 6. Development-only deployment and repeatable test environment.
 
-Next release gates add events, detections, policies, security-engine integrations and finally limited response. The exact feature set and supported OS builds are owner decisions.
+Next release gates add events, detections and policies; then a single action-specific, lab-only response prototype may be considered after explicit owner/security approval; broader SOC/scanner integrations follow the approved dependency order. Do not implement kill, quarantine or isolation as a bundle just because the roadmap lists them. The exact feature set, sequence and supported OS builds are owner decisions.
 
 ## 5. Functional requirements
 
@@ -92,13 +98,13 @@ Each requirement needs a test or review artifact. `P0` is foundation/first produ
 - **FR-EVT-02 (P0):** Events have deduplication/idempotency and ingestion status; sensitive fields follow the approved allowlist.
 - **FR-DET-01 (P0):** Detection rules are versioned, enabled/disabled explicitly and linked to test evidence and required telemetry.
 - **FR-DET-02 (P0):** A matched test event creates an alert with rule ID/version, endpoint, evidence reference, severity, explanation and timestamps.
-- **FR-DET-03 (P0):** Alert lifecycle supports new, investigating, resolved and false-positive/accepted states; exact state machine is To confirm.
+- **FR-DET-03 (P0):** Alert lifecycle supports an owner-approved state machine. Candidate states are new, investigating, resolved and false-positive/accepted; exact states/transitions are To confirm in ADR-013.
 - **FR-DET-04 (P1):** ATT&CK mapping and IOC enrichment are added only when mappings/source confidence are recorded.
 
 ### Incident response
 
 - **FR-RSP-01 (P1, guarded):** Response actions are denied by default and require action-specific authorization and target validation.
-- **FR-RSP-02 (P1, guarded):** Approval policy, user confirmation, reason and action expiry are recorded before a disruptive command is issued.
+- **FR-RSP-02 (P1, guarded):** The owner-approved ADR-014 approval policy, confirmation, reason and action expiry are enforced before a disruptive command is issued. Until approved, no response action is implemented/enabled.
 - **FR-RSP-03 (P1, guarded):** Endpoint reports accepted/rejected/running/succeeded/failed/expired status with safe error detail.
 - **FR-RSP-04 (P1, guarded):** Endpoint isolation preserves a restricted management/recovery channel and a tested release procedure.
 - **FR-RSP-05 (P1, guarded):** Every action is auditable and has an operator recovery/rollback path.
@@ -152,12 +158,12 @@ Authorized analyst selects a supported action and exact target → platform reva
 ## 9. Decisions still required from owner
 
 - Exact Windows releases and Linux distributions/kernel support matrix.
-- Single-tenant on-prem vs hosted multi-tenant deployment and data residency.
+- Hosting provider/region and data residency for the centrally hosted multi-organization platform (deployment model approved in ADR-009).
 - User identity provider/MFA and initial organization/site permission matrix.
 - Fields considered personal/sensitive; assigned-user collection and retention.
 - Heartbeat interval, stale/offline threshold, telemetry allowlist and retention.
 - Initial event schema and which process/file/network fields are acceptable.
-- Which component owns authority for integration-originated response requests.
+- Which component owns authority for integration-originated response requests and whether a requester may ever approve their own action (ADR-014).
 - Which P0 features are required at Foundation v0.1 versus later.
 - UI languages, design system and accessibility target.
 - Expected endpoint/EPS volume, availability and recovery objectives.

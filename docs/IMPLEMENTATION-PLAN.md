@@ -20,53 +20,46 @@ The owner wants documentation completed before coding. Follow these gates:
 
 When two documents appear to disagree, use this order and stop on unresolved conflicts:
 
-1. Owner-approved decision recorded in `docs/decisions/` (decision log/ADR).
+1. Owner-approved decision recorded in [the ADR register](decisions/README.md) (decision log/ADR).
 2. `docs/PRODUCT-REQUIREMENTS.md` for product behavior, scope and acceptance.
 3. Component contract: API, data model, agent specification, threat model, test strategy or deployment plan.
 4. `docs/architecture/SYSTEM-ARCHITECTURE.md` for component boundaries and flows.
 5. `docs/ARIBA-EPP-BLUEPRINT.md` and `docs/ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md` for product direction/detail.
-6. `docs/ARIBA-EPP-PRODUCT-IDEA.md` as source input only; examples/ideas there do not override approved requirements.
+6. `docs/PROJECT-TASKS.md` is the detailed task-ID/checklist ledger only; it cannot override requirements or security contracts.
+7. `docs/ARIBA-EPP-PRODUCT-IDEA.md` is source input only; examples/ideas there do not override approved requirements.
 
-No owner-approved ADR directory exists yet. Create a decision record when the owner resolves a decision; do not treat empty directory structure as an approval.
+The ADR register is a proposal index only. No ADR is approved until the owner records an explicit decision/status there.
 
-## 3. Dependency-ordered backlog
+## 3. Canonical task ledger and order
 
-Status for every item starts **PLANNED**. An AI must not mark tasks complete without repository change plus verification evidence.
+Use [PROJECT-TASKS.md](PROJECT-TASKS.md) as the **only detailed implementation task ledger** (IDs M0–M10). This plan is the documentation approval gate and AI handoff contract; do not create or maintain a competing checkbox list here.
 
-| ID | Task | Dependencies | Exit evidence |
-|---|---|---|---|
-| DOC-01 | Owner approves product scope, deployment model and Foundation v0.1 acceptance | None | Dated decisions in docs |
-| DOC-02 | Approve OS support matrix, privacy/telemetry allowlist and retention | DOC-01 | Versioned matrix and data policy |
-| DOC-03 | Approve identity/RBAC/tenant model and response authorization | DOC-01 | Role/action matrix and threat-model review |
-| DOC-04 | Approve technology/dependency/licensing choices | DOC-01, repo audit | ADRs with alternatives/rationale |
-| DOC-05 | Review API, event, policy and DB contracts for consistency | DOC-02–04 | Contract review checklist passed |
-| FND-01 | Establish development environment/repository conventions | DOC-01–05 | Repeatable clean setup |
-| FND-02 | Implement authentication shell and server-side authorization | FND-01 | Positive + negative auth/RBAC tests |
-| FND-03 | Implement organizations/sites and tenant-scoped schema | FND-01, FND-02 | Migration, isolation and restore tests |
-| FND-04 | Implement one-time enrollment and unique agent identity | FND-02, FND-03, security decisions | Reuse/expiry/revocation tests |
-| FND-05 | Implement Windows/Linux heartbeat prototypes | FND-04, agent spec | Lab endpoint reconnect tests |
-| FND-06 | Display endpoint inventory and health in console | FND-03, FND-05 | UI/API E2E evidence |
-| FND-07 | Establish safe logging, monitoring, backup and local deployment | FND-01–06 | Setup, restore and secret scans |
-| TEL-01 | Finalize event schema and ingestion contract | DOC-02, DOC-05 | Schema review and fixture tests |
-| TEL-02 | Implement bounded ingestion and storage adapter | TEL-01, FND-07 | Load/idempotency/retry tests |
-| DET-01 | Add safe sample rule and versioned rule test harness | TEL-02 | Expected match/non-match tests |
-| ALT-01 | Implement alert lifecycle and explainable alert detail | DET-01 | State/permission tests |
-| POL-01 | Implement signed/versioned policy distribution | FND-04, DOC-03–05 | Signature/replay/rollback tests |
-| INT-01 | Integrate selected scanner and SOC/Wazuh adapter | DOC-04, TEL-01 | Contract, timeout and retry tests |
-| RSP-01 | Define one limited response action and recovery path | DOC-03, threat-model review | Owner approval + lab-only security tests |
-| REL-01 | Pilot hardening and release evidence | Prior scope | Performance, backup, update, security review |
+The conceptual dependency order is:
+
+1. **Documentation approval gate:** owner resolves blocking questions in §4 and approves the Foundation v0.1 scope, contracts and decisions.
+2. **M0 — Foundation & decisions:** development environment, quality gates and approved ADRs. Product implementation/setup tasks begin only after gate 1.
+3. **M1 — Identity/RBAC/tenancy.**
+4. **M2 — Endpoint identity/enrollment/heartbeat.**
+5. **M3 — Telemetry.**
+6. **M4 — Detection and alerts.**
+7. **M5 — Policy engine.**
+8. **M6 — Guarded response, lab only.**
+9. **M7–M8 — Integrations and vulnerability context as approved.**
+10. **M9–M10 — Hardening, packaging and pilot after evidence/review.**
+
+The task IDs, estimates and milestone ordering in `PROJECT-TASKS.md` are planning inputs until the owner approves them. Never mark a task complete without implementation plus verification evidence. P0 roadmap scope is not identical to the smaller Foundation v0.1 proof milestone; see the requirements document.
 
 ## 4. Blocking open decisions (owner required)
 
 Do not silently choose values for these:
 
 1. Supported Windows builds, Linux distributions and kernels.
-2. On-prem/private cloud/hosted SaaS; single-tenant or shared multi-tenant control plane.
+2. Hosting provider/region, data residency and operational targets for the centrally hosted multi-organization platform approved in ADR-009.
 3. Identity provider, MFA and exact role/site permission matrix.
 4. Agent telemetry allowlist, personal data treatment, retention, deletion and residency.
 5. Heartbeat cadence/stale thresholds, event volume/EPS, target retention, availability and recovery objectives.
 6. Which exact features ship in Foundation v0.1 versus later P0/P1/P2 phases.
-7. Whether any response action is included in first pilot; observe-only is default until approved.
+7. Whether any response action is included in first pilot and its action-specific approval rules; observe-only is default until ADR-014 and action scope are approved.
 8. Selected frameworks, libraries, broker, event store, scanner engines and commercial licenses.
 9. API/event/policy schema compatibility and versioning rules.
 10. Supported languages/UI design/accessibility expectations.
@@ -76,7 +69,7 @@ Do not silently choose values for these:
 When the user later asks to implement:
 
 1. Read `AGENTS.md`, this plan and the relevant specifications.
-2. Confirm user selected a milestone/task; if not, propose the next planned task instead of changing files.
+2. Confirm the docs gate is approved and the user selected a milestone/task; if not, propose the next documentation review action instead of changing product files.
 3. Inspect current source, build/test commands, dependency and Git state. Do not assume a planned directory is empty or replace existing work.
 4. If a high-impact `To confirm` affects the requested task, ask only the blocking question(s) or implement a non-committing scaffold that does not decide the issue.
 5. Make the smallest change that satisfies named requirement IDs and acceptance criteria.

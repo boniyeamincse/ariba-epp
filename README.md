@@ -38,7 +38,7 @@
 
 Directories currently contain placeholders (`.gitkeep` or a README) only.
 
-## Milestone 01 — Ariba EPP Foundation v0.1
+## Foundation v0.1 — first release proof milestone
 
 **Do not begin implementation until the documentation gate in
 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) is approved by the
@@ -47,6 +47,8 @@ owner.**
 Target deliverables: repository and architecture docs, login/admin console shell, organization and site management, PostgreSQL migrations, management API, development deployment, initial Windows/Linux agent prototypes, secure endpoint enrollment, and heartbeat.
 
 **Definition of success:** one authorized Windows endpoint and one authorized Linux endpoint enroll with unique identities and their health/last-seen state is visible in the console. This proves the management/agent path only; it does not establish malware-prevention efficacy.
+
+This release proof spans roadmap milestones `M0`–`M2`; it is not the same thing as `M2` alone. See [docs/PROJECT-TASKS.md](docs/PROJECT-TASKS.md) for the M0–M10 IDs.
 
 ## Ground rules
 

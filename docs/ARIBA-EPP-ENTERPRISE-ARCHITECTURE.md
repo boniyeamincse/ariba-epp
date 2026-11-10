@@ -713,22 +713,11 @@ Dates are placeholders from the supplied plan; staffing, dependencies and scope 
 - Response is unavailable by default to unauthorized users; approved lab action records actor, reason, target, result and recovery path.
 - Agent/server upgrades, failure behavior, resource use, backup/restore and rollback are tested.
 
-## 16. First 10 implementation tasks
+## 16. Implementation task source
 
-The first list is an ordered checklist, not proof of completion:
+Use [PROJECT-TASKS.md](PROJECT-TASKS.md) as the sole detailed M0–M10 implementation checklist. This architecture document does not define a second task sequence or completion status. The docs approval gate in [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) must pass before any implementation task begins.
 
-1. Create/confirm the Git repository for `ariba-epp` and its ownership/access model.
-2. Review and approve architecture, scope, threat model and technology decisions.
-3. Initialize the chosen frontend shell and login flow.
-4. Initialize the API/backend as a modular monolith.
-5. Configure PostgreSQL migrations and local development services.
-6. Establish Docker Compose for development with safe local-only defaults.
-7. Implement user authentication, MFA plan, RBAC and tenant/site authorization tests.
-8. Implement organization and site management.
-9. Create Windows/Linux agent skeletons with no disruptive response actions enabled.
-10. Implement secure lab enrollment and heartbeat, then verify both endpoints in the console.
-
-### Milestone 01 — Ariba EPP Foundation v0.1
+### Foundation v0.1 — first release proof milestone (roadmap M0–M2)
 
 Deliverables: repository and architecture docs, login/admin console shell, organization/site management, PostgreSQL migrations, FastAPI service (if confirmed), development deployment, initial Windows/Linux agent prototypes, secure endpoint enrollment and heartbeat.
 
@@ -757,7 +746,7 @@ For every module, maintain implementation status, API/data contracts, test cases
 6. Select a minimal safe telemetry set and test per-OS resource/coverage tradeoffs.
 7. Define which response action is in the first pilot; observe-only may be preferable initially.
 8. Confirm MISP/Wazuh interface versions and integration ownership.
-9. Confirm deployment target (on-premises/private cloud/managed service), availability and recovery objectives.
+9. Confirm provider/region, data residency, availability and recovery objectives for the centrally hosted multi-organization model approved in ADR-009.
 10. Confirm licensing/commercial use constraints for every dependency, signature/rule source and bundled engine.
 11. Set release criteria and evidence needed before calling any capability prevention, production-ready or commercial-grade.
 

@@ -24,7 +24,7 @@ Do not place real secrets in Compose files, sample `.env`, documentation or Git.
 
 Before pilot, decide:
 
-- On-premises, private cloud or hosted service; tenant isolation model.
+- Hosting provider, region and data residency for the centrally hosted multi-organization platform (deployment model approved in ADR-009); concrete tenant-isolation mechanism still to confirm.
 - Service network segmentation, ingress/egress, DNS, certificate authority and key rotation.
 - PostgreSQL, broker, search and object-store redundancy and backup/restore.
 - Availability, RPO/RTO, endpoint/EPS limits and data retention.
