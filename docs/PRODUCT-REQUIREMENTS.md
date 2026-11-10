@@ -14,21 +14,28 @@ Organizations need a central view of endpoint security posture and a controlled 
 
 | Role | Primary need | Initial access boundary |
 |---|---|---|
-| Platform administrator | Configure platform, organizations and integrations | Global, privileged and audited |
-| Organization administrator | Manage own organization, sites and endpoints | Own organization only |
-| Security administrator | Author and assign security policies | Authorized organization/site scope |
-| SOC analyst L1 | Triage alerts and assign investigations | Read/triage; no disruptive actions by default |
-| SOC analyst L2 / incident responder | Investigate and request approved response | Specific action permissions and approval policy |
-| Auditor | Review audit and reports | Read-only, scoped |
-| Viewer | See permitted dashboard data | Read-only, scoped |
+| Platform Super Admin | Configure platform, organizations and global integrations | Global, privileged and audited |
+| Group Administrator | Oversee parent group (conglomerate) & subsidiary companies | Own Parent Organization (`org_id`) |
+| Group SOC Lead | Group-wide threat monitoring, triage & threat hunting | Own Parent Organization (`org_id`) |
+| Company Administrator | Manage subsidiary company (e.g. Akij Plastic), users, sites | Own Company (`company_id`) |
+| Company SOC Analyst | Triage & investigate alerts for specific company | Own Company (`company_id`) |
+| Unit / Site Administrator | Enroll endpoints & monitor local factory/office status | Own Site (`site_id`) |
+| Security Administrator | Author, sign, and assign security policies & engines | Authorized Group/Company scope |
+| Auditor | Review audit trails, compliance reports & evidence | Read-only, scoped |
+| Viewer | See permitted executive dashboard & posture KPIs | Read-only, scoped |
 
-MFA provider and exact role permissions are **To confirm**. Enforcement must be server-side, not only hidden in UI.
+For full granular permissions, see [RBAC & Tenant Permission Matrix](security/PERMISSION-MATRIX.md). Enforcement must be server-side, not only hidden in UI.
 
-### Deployment and tenancy model (owner-approved 2026-11-09)
+### Deployment and tenancy model (owner-approved 2026-11-09, expanded 2026-11-10)
 
-Ariba EPP is a **centrally hosted multi-organization platform**: multiple customer organizations (for example Akij Group, Boni IT, Nazim Group) share one platform, and each customer is an `organization` tenant with its own sites, users, endpoints, policies, alerts and audit history. Platform Administrators manage organizations; Organization Administrators manage only their own organization. Cross-organization access is denied by default.
+Ariba EPP is a **centrally hosted multi-organization, multi-company, multi-site platform**:
+- **Platform Level:** Managed by Platform Super Admins across all customer organizations.
+- **Parent Organization / Group:** Customer conglomerate (e.g., Akij Group, Boni IT, Meghna Group) with Group-level security administration and roll-up visibility across all subsidiaries.
+- **Company / Subsidiary:** Business entities within a group (e.g., Akij Plastic, Akij Piles, Akij Jute). Managed by Company Admins; cross-company visibility is strictly denied.
+- **Site / Unit / Location:** Operating units (Head Office, Factory 01, Factory 02, Depot, Branch) hosting local endpoints.
+- **Endpoints / Assets:** Carries denormalized `organization_id`, `company_id`, and `site_id` for zero-join, high-velocity hierarchical querying, strict isolation, and multi-level rollup reporting.
 
-See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md). Hosting region, data residency, isolation mechanism, per-tenant quotas/retention and billing remain **To confirm**.
+See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md) and [DATA-MODEL.md](database/DATA-MODEL.md). Hosting region, data residency, isolation mechanism, per-tenant quotas/retention and billing remain **To confirm**.
 
 ## 3. Goals and non-goals
 
@@ -53,6 +60,26 @@ See [ADR-009](decisions/ADR-009-hosted-multi-tenant.md). Hosting region, data re
 - Production deployment, availability guarantees or compliance certification before those are separately specified and tested.
 
 ## 4. Product and delivery scope
+
+### 4.1 Core vs Advanced Feature Release Matrix (Owner-confirmed 2026-11-10)
+
+| Feature | Priority | Release Phase | Operational Focus & Scope |
+|---|---|---|---|
+| Endpoint Management | P0 | MVP (Release 1) | Centrally manage endpoints, enrollment, health & inventory |
+| Agent Management | P0 | MVP (Release 1) | Agent installation, heartbeat, status & lifecycle |
+| Process Monitoring | P0 | MVP (Release 1) | Process lifecycle, parent-child lineage & behavioral telemetry |
+| File Monitoring | P0 | MVP (Release 1) | File activity monitoring, hash calculation (SHA256) |
+| Malware Scanning | P0 | MVP (Release 1) | YARA / ClamAV scanning, signature detection, on-demand & scheduled |
+| Detection Engine | P0 | MVP (Release 1) | Rule evaluation (Sigma/Ariba rules), correlation & severity scoring |
+| Alert Management | P0 | MVP (Release 1) | Real-time threat alerts, alert lifecycle triage & investigation |
+| Policy Management | P0 | MVP (Release 1) | Centrally assigned, signed policy distribution & acknowledgement |
+| Quarantine | P1 | Release 2 | Guarded file quarantine, restricted storage & safe restoration |
+| Ransomware Protection | P1 | Release 2 | Mass file modification detection, entropy monitoring & canary traps |
+| Host Firewall | P1 | Release 2 | Host firewall management, IP/domain blocking & network isolation |
+| Vulnerability Management | P1 | Release 2 | Software inventory audit, CVE mapping & risk scoring |
+| Application Control | P1 | Release 2 | Allowlisting, blocklisting & script execution control |
+| AI Security Assistant | P2 | Release 3 | Alert explanation (Bangla/English), attack timeline & guided remediation |
+| Advanced Threat Hunting | P2 | Release 3 | Query builder for historical telemetry & deep MITRE ATT&CK exploration |
 
 Long-term product capabilities use EPP-01 through EPP-14 priorities in the [Enterprise Architecture](ARIBA-EPP-ENTERPRISE-ARCHITECTURE.md#3-functional-modules-and-priorities). Foundation v0.1 must prove the management/agent path first:
 
@@ -115,7 +142,7 @@ Each requirement needs a test or review artifact. `P0` is foundation/first produ
 - **FR-AUD-01 (P0):** Authentication, enrollment, policy, permission and response changes generate protected audit records.
 - **FR-INT-01 (P1):** Wazuh/Ariba SOC events use a versioned integration contract with retry and duplicate handling.
 - **FR-INT-02 (P1):** MISP IOC import/export records source, timestamp, confidence and expiry.
-- **FR-INT-03 (P0 discovery):** Integration failure must not corrupt EPP's source-of-truth endpoint/policy state.
+- **FR-INT-03 (P0):** Integration failure must not corrupt EPP's source-of-truth endpoint/policy state.
 
 ## 6. Quality requirements
 

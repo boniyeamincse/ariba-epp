@@ -361,12 +361,12 @@ Policies must be versioned, signed and validated. Agents reject unsigned policy 
 
 ### Proposed core entities
 
-`organizations`, `sites`, `users`, `roles`, `user_roles`, `endpoints`, `agent_credentials`, `agent_heartbeats`, `security_policies`, `policy_assignments`, `detection_rules`, `security_alerts`, `incidents`, `response_actions`, `software_inventory`, `vulnerability_findings`, `threat_iocs`, `quarantine_records`, `audit_logs`.
+`organizations`, `companies`, `sites`, `users`, `roles`, `permissions`, `user_roles`, `endpoints`, `agent_credentials`, `agent_heartbeats`, `security_policies`, `policy_assignments`, `detection_rules`, `security_alerts`, `incidents`, `response_actions`, `software_inventory`, `vulnerability_findings`, `threat_iocs`, `quarantine_records`, `audit_logs`.
 
 ### Database engineering requirements
 
 - Use UUID identifiers where suitable; use migrations under version control.
-- Tenant-owned records carry explicit organization scope; enforce authorization in services and consider PostgreSQL Row-Level Security after threat-model review.
+- Tenant-owned records carry explicit corporate hierarchy scope (`organization_id`, `company_id`, `site_id`); enforce authorization in services and consider PostgreSQL Row-Level Security after threat-model review.
 - Store only credential hashes or secure references; never store plaintext passwords or reusable agent secrets.
 - Define retention/deletion for events, alerts, inventory, quarantine and evidence.
 - Partition high-volume records only when measurements justify it.
@@ -380,23 +380,39 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(200) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE companies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    industry_type VARCHAR(100),
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (organization_id, code)
+);
+
 CREATE TABLE sites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    code VARCHAR(50) NOT NULL,
     name VARCHAR(200) NOT NULL,
     site_type VARCHAR(50),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (company_id, code)
 );
 
 CREATE TABLE endpoints (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL REFERENCES organizations(id),
-    site_id UUID REFERENCES sites(id),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
     hostname VARCHAR(255) NOT NULL,
     platform VARCHAR(30) NOT NULL,
     os_version VARCHAR(100),
@@ -406,7 +422,7 @@ CREATE TABLE endpoints (
     status VARCHAR(30) NOT NULL DEFAULT 'pending',
     last_seen TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (organization_id, hostname)
+    UNIQUE (company_id, hostname)
 );
 
 CREATE TABLE security_policies (
@@ -467,13 +483,20 @@ CREATE INDEX idx_alerts_endpoint ON security_alerts(endpoint_id);
 
 | Area | Method | Route | Purpose |
 |---|---|---|---|
-| Enrollment | POST | `/agents/enroll` | Register endpoint |
+| Hierarchy | POST | `/organizations` | Onboard Parent Group (Organization) |
+| Hierarchy | GET | `/organizations` | List authorized Parent Groups |
+| Hierarchy | POST | `/organizations/{org_id}/companies` | Onboard subsidiary Company |
+| Hierarchy | GET | `/organizations/{org_id}/companies` | List Companies in Parent Group |
+| Hierarchy | POST | `/companies/{company_id}/sites` | Create operating unit/site (Factory, Office, Depot) |
+| Hierarchy | GET | `/companies/{company_id}/sites` | List Sites belonging to a Company |
+| Enrollment | POST | `/sites/{site_id}/enrollment-tokens` | Generate scoped one-time token |
+| Enrollment | POST | `/agents/enroll` | Register endpoint, bind hierarchy, issue cert |
 | Enrollment | POST | `/agents/renew` | Renew agent identity/certificate |
-| Agent | GET | `/agents` | List authorized agents |
-| Agent | GET | `/agents/{id}` | Endpoint detail |
-| Agent | POST | `/agents/{id}/heartbeat` | Heartbeat and health |
+| Agent | GET | `/agents` | List authorized agents (scoped) |
+| Agent | GET | `/agents/{endpoint_id}` | Endpoint detail |
+| Agent | POST | `/agents/{endpoint_id}/heartbeat` | Heartbeat and health |
 | Telemetry | POST | `/telemetry/events` | Submit validated events |
-| Policy | GET | `/agents/{id}/policy` | Retrieve assigned policy |
+| Policy | GET | `/agents/{endpoint_id}/policy` | Retrieve assigned policy |
 | Policy | POST | `/policies` | Create policy |
 | Policy | PUT | `/policies/{id}` | Update/version policy |
 | Alert | GET | `/alerts` | List authorized alerts |
@@ -482,7 +505,7 @@ CREATE INDEX idx_alerts_endpoint ON security_alerts(endpoint_id);
 | Incident | GET | `/incidents/{id}` | Incident details/timeline |
 | Response | POST | `/response/actions` | Request guarded action |
 | Response | GET | `/response/actions/{id}` | Action status/result |
-| Malware | POST | `/malware/scan` | Request authorized scan |
+| Malware | POST | `/malware/scans` | Request authorized scan |
 | Threat Intel | POST | `/iocs` | Add/ingest an IOC |
 | Inventory | GET | `/inventory/software` | Authorized software inventory |
 | Vulnerability | GET | `/vulnerabilities` | Findings |
@@ -548,18 +571,21 @@ Administration
   Users & Roles / Organizations / Sites / Audit Logs / Settings
 ```
 
-### Candidate roles
+### Candidate roles (Corporate Hierarchy)
 
-| Role | Scope |
-|---|---|
-| Super Admin | Platform administration under break-glass controls |
-| Organization Admin | Own organization management |
-| Security Admin | Policies and protection configuration |
-| SOC Analyst L1 | Alert monitoring and triage |
-| SOC Analyst L2 | Investigation and eligible approved response |
-| Incident Responder | Specifically authorized remediation actions |
-| Auditor | Read-only audit and reports |
-| Viewer | Dashboard-only, scoped access |
+For the canonical, granular permissions mapping, see [PERMISSION-MATRIX.md](security/PERMISSION-MATRIX.md).
+
+| Role | Scope | Key Responsibility |
+|---|---|---|
+| Platform Super Admin | Global Platform | Cross-organization administration under break-glass controls |
+| Group Administrator | Parent Group (`org_id`) | Overall security oversight across all subsidiary companies |
+| Group SOC Lead | Parent Group (`org_id`) | Cross-company threat monitoring and threat hunting |
+| Company Administrator | Company (`company_id`) | Specific business entity (e.g. Akij Plastic) management & sites |
+| Company SOC Analyst | Company (`company_id`) | Triage and investigation strictly within company scope |
+| Unit / Site Administrator | Site (`site_id`) | Local endpoint enrollment & health (Factory, Office, Depot) |
+| Security Administrator | Group / Company | Policies, protection engine tuning, YARA & CTI feeds |
+| Auditor | Scoped | Read-only compliance audit and forensic reports |
+| Viewer | Scoped | Executive posture dashboards and high-level KPIs |
 
 Use RBAC plus organization/site scope. Include MFA for privileged users, permission checks on the server for every action and explicit loading/empty/stale/partial-data/error states in the UI. Dashboard counts must reflect actual telemetry; sample numbers are never live data.
 

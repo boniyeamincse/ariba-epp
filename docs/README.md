@@ -14,11 +14,12 @@
 - [Data Model](database/DATA-MODEL.md) — entities, tenant ownership, storage boundaries, retention and integrity constraints।
 - [Endpoint Agent Specification](agent/AGENT-SPECIFICATION.md) — agent lifecycle, OS collectors, offline behavior, policy and safe command rules।
 - [Threat Model](security/THREAT-MODEL.md) — assets, trust boundaries, threats, required controls and residual risks।
+- [RBAC & Tenant Permission Matrix](security/PERMISSION-MATRIX.md) — রোলের তালিকা, গ্র্যানুলার পারমিশন কোড, টেন্যান্ট স্কোপিং এবং সার্ভার-সাইড এনফোর্সমেন্ট রুলস।
 - [Test Strategy](testing/TEST-STRATEGY.md) — lab-only validation, test layers, release gates and acceptance evidence।
-- [Deployment Plan](deployment/DEPLOYMENT-PLAN.md) — dev/lab/pilot/production boundaries, hardening, observability and recovery.
+- [Deployment Plan](deployment/DEPLOYMENT-PLAN.md) — dev/lab/pilot/production boundaries, hardening, observability and recovery।
 - [Ariba EPP Product Idea](ARIBA-EPP-PRODUCT-IDEA.md) — owner-এর দেওয়া মূল product concept (source material)।
 - [Project Task List & Roadmap](PROJECT-TASKS.md) — M0–M10 milestone, step-by-step small tasks, language plan এবং tracking workflow।
-- [Decision Log](decisions/README.md) — owner-approved ADR; ADR-009 centrally hosted multi-organization tenancy।
+- [Core Dashboard & Navigation](dashboard/README.md) — সাইডবার নেভিগেশন হায়ারার্কি এবং রোল-ভিত্তিক ড্যাশবোর্ড স্পেসিফিকেশন।
 
 ## Subdirectories
 
@@ -27,7 +28,9 @@
 | `architecture/` | System design and architecture decisions |
 | `api/` | Agent and management API contracts; implementation OpenAPI must conform |
 | `agent/` | Agent lifecycle, support matrix and OS-specific requirements |
+| `dashboard/` | Core dashboard navigation and individual role-based dashboard specifications |
 | `database/` | Data model, retention and tenant isolation |
+| `decisions/` | ADR register and owner-approved decision records |
 | `deployment/` | Topologies, hardening and recovery |
 | `security/` | Threat model, privacy and response safeguards |
 | `testing/` | Test strategy, lab setup and acceptance evidence |

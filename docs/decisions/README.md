@@ -6,7 +6,7 @@ owner-approved decision. A proposal is not approval.
 
 ## Conventions
 
-- One file per decision: `ADR-NNN-short-title.md`.
+- A file is created when a decision is drafted or approved: `ADR-NNN-short-title.md`. The register may list a Proposed/To confirm topic before its file exists.
 - Status values: `Proposed`, `Approved`, `Superseded`, `Rejected`.
 - `Approved` means the product owner accepted it; it is not proof that the feature
   is implemented, tested, certified or deployed.

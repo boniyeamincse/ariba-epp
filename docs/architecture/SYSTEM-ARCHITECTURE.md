@@ -8,17 +8,18 @@
 - EPP owns endpoint identity/lifecycle, policy, detection orchestration and endpoint response.
 - Ariba SOC/Wazuh is an integration and cross-source SOC layer, not the EPP frontend/control-plane substitute.
 - Initial endpoint platforms are Windows and Linux; versions are unresolved.
-- Full antivirus/kernel prevention is not established by this architecture. Use OS protections and mature integrations until a specific enforcement mechanism is designed, tested and approved.
-- Enterprise target requires tenant-aware authorization, audit, signing, update/recovery, privacy and measured scalability.
+- Enterprise target requires a 4-tier corporate hierarchy: **Platform ➔ Organization (Parent Group) ➔ Company (Business Entity) ➔ Site (Unit/Factory/Office) ➔ Endpoint (Asset)**.
+- Group administrators obtain aggregated visibility across all subsidiary companies; company administrators are strictly isolated to their own company data.
+- Tenant-aware authorization, audit, signing, update/recovery, privacy and measured scalability are mandatory.
 
 ## 2. Logical components
 
 | Component/module | Boundary | Initial deployment direction |
 |---|---|---|
-| Web console | User workflows; never sole authorization boundary | Separate web app or existing UI only after repo review |
-| Management API | User/agent auth, validation, authorization and orchestration | Modular monolith |
-| Identity/enrollment | User roles, tenant scope, endpoint identity, renewal/revocation | Module in control-plane app |
-| Endpoint management | Inventory, health, lifecycle, group/site assignment | Module + PostgreSQL |
+| Web console | User workflows; never sole authorization boundary; role/company-scoped views | Separate web app or existing UI only after repo review |
+| Management API | User/agent auth, validation, hierarchical authorization and orchestration | Modular monolith |
+| Identity/enrollment | User roles, multi-company tenant scope, endpoint identity, renewal/revocation | Module in control-plane app |
+| Hierarchy & fleet management | Group/Company/Site hierarchy, inventory, health, lifecycle | Module + PostgreSQL |
 | Policy | Authoring, versions, signing, assignments, acknowledgements | Module + PostgreSQL; signed agent-facing bundle |
 | Telemetry ingestion | Schema validation, rate/size limits, dedupe, normalization | Independently scalable worker/API boundary |
 | Detection/alert | Rule evaluation, enrichment, correlation, alert lifecycle | Worker/module; OpenSearch event refs + PostgreSQL control state |

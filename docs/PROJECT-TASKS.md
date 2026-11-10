@@ -1,4 +1,3 @@
-**Release mapping:** Foundation v0.1 spans roadmap milestones M0–M2: M0 approved setup/quality foundation, M1 identity + organization/site + tenant tests, and M2 endpoint enrollment/heartbeat/console visibility. The M2 review demonstrates the release; M2 is not itself named “Milestone 01.”
 # Ariba EPP — Project Task List, Milestones and Language Plan
 
 **Status:** Planning checklist. Nothing below is implemented yet. All technology entries are **Proposed** until owner approval/ADR.
@@ -91,7 +90,10 @@ Using the right language per layer is normal for security products. The rule is:
 | M9 | Hardening & security validation | Threat-model-driven tests and independent review | Security checklist + load/backup/migration evidence | Weeks 22–24 |
 | M10 | Packaging & pilot | Signed installers, pilot deployment, runbooks | Pilot rollback plan + known limitations approved | Weeks 22–26 |
 
-**P0 (broader production-oriented MVP roadmap):** M0–M6 core, M9. **P1:** M7–M8, M10. **P2 (later):** application control, firewall, AI assistant, macOS/mobile.
+**Release mapping (Owner-confirmed 2026-11-10):**
+- **MVP (Release 1, P0):** M0–M5 (Endpoint & Agent Management, Process & File Monitoring, Malware Scanning, Detection Engine, Alert Management, Policy Management). Foundation v0.1 proof spans M0–M2.
+- **Release 2 (P1):** M6–M8, M10 (Guarded Quarantine & Response, Ransomware Protection, Host Firewall, Vulnerability Management, Application Control, Packaging & Pilot).
+- **Release 3 (P2):** AI Security Assistant, Advanced Threat Hunting, Cross-source Correlation & Posture Hardening.
 
 **Foundation v0.1 mapping:** this is a narrow release proof spanning roadmap milestones M0–M2 (M0 setup/quality foundation; M1 identity, organization/site and tenant tests; M2 endpoint enrollment, heartbeat and console visibility for one authorized Windows and one Linux lab endpoint). M2's review demonstrates the release; M2 is not itself the entire release. The broader P0 production-oriented roadmap remains separate. Product coding still waits for the docs approval gate above.
 
@@ -132,35 +134,35 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 **Backend (Python)**
 - [ ] `M1-T01` Scaffold `apps/api-server` as modular monolith (routers per domain).
 - [ ] `M1-T02` Configure async SQLAlchemy + Alembic.
-- [ ] `M1-T03` Migration: `organizations`, `sites`, `users`, `roles`, `user_roles`, `audit_logs`.
-- [ ] `M1-T04` Add UUID PKs, timestamps, org scoping columns and indexes.
+- [ ] `M1-T03` Migration: `organizations`, `companies`, `sites`, `users`, `roles`, `permissions`, `user_roles`, `audit_logs`.
+- [ ] `M1-T04` Add UUID PKs, timestamps, org/company/site scoping columns and indexes.
 - [ ] `M1-T05` Implement password hashing with Argon2id.
 - [ ] `M1-T06` Implement login/logout and refresh or session strategy (ADR-backed).
-- [ ] `M1-T07` Implement permission dependency (`require_permission`) used by every route.
-- [ ] `M1-T08` Implement organization/site scoping helpers; reject cross-org access.
+- [ ] `M1-T07` Implement permission dependency (`require_permission`) used by every route per `PERMISSION-MATRIX.md`.
+- [ ] `M1-T08` Implement hierarchical scoping helpers (Org/Company/Site); reject cross-org and cross-company access.
 - [ ] `M1-T09` Implement audit-log writer (actor, action, target, before/after, time).
 - [ ] `M1-T10` Add rate limiting on auth endpoints.
-- [ ] `M1-T11` Seed roles: Super Admin, Org Admin, Security Admin, Analyst L1/L2, Responder, Auditor, Viewer.
-- [ ] `M1-T12` Implementation decision: MFA provider and enrollment flow (record; may be MVP+1).
+- [ ] `M1-T11` Seed roles: Platform Super Admin, Group Administrator, Group SOC Lead, Company Administrator, Company SOC Analyst, Unit / Site Administrator, Security Administrator, Auditor, Viewer.
+- [ ] `M1-T12` Implementation decision: MFA provider and enrollment flow (record; must be enforced before external pilot per FR-ID-03).
 
 **Frontend (TypeScript)**
 - [ ] `M1-T13` Scaffold Next.js app with TypeScript strict + layout shell.
 - [ ] `M1-T14` Build login page with error/loading states.
-- [ ] `M1-T15` Build authenticated layout and sidebar shell.
-- [ ] `M1-T16` Build Organization/Site management screens (list, create, edit).
+- [ ] `M1-T15` Build authenticated layout and sidebar shell per `docs/dashboard/README.md`.
+- [ ] `M1-T16` Build Organization/Company/Site management screens (list, create, edit).
 - [ ] `M1-T17` Build Users & Roles screen (read-only first if needed).
 - [ ] `M1-T18` Add permission-aware UI guards (server remains source of truth).
 
 **Tests**
 - [ ] `M1-T19` Tests: unauthorized role cannot access restricted route.
-- [ ] `M1-T20` Tests: user in org A cannot read org B data (IDOR + tenant).
+- [ ] `M1-T20` Tests: user in org/company A cannot read org/company B data (IDOR, tenant & company isolation).
 - [ ] `M1-T21` Tests: audit record created for create/update actions.
 
-**Multi-organization hosting (owner-approved ADR-009)**
+**Multi-organization & Multi-company hosting (owner-approved ADR-009)**
 - [ ] `M1-T22` Organization lifecycle API: create, suspend, reactivate, with platform-level audit.
-- [ ] `M1-T23` Customer onboarding: create organization + first Organization Admin + default sites.
-- [ ] `M1-T24` Separate Platform Admin console area from Organization Admin area.
-- [ ] `M1-T25` Tenant-scoped audit search: platform view vs organization view.
+- [ ] `M1-T23` Customer onboarding: create Parent Group + first Group Admin + subsidiary Companies + Sites.
+- [ ] `M1-T24` Separate Platform Admin console area from Group/Company Admin area.
+- [ ] `M1-T25` Tenant-scoped audit search: platform view vs group view vs company view.
 - [ ] `M1-T26` Per-organization quotas, rate limits and fair-use monitoring.
 - [ ] `M1-T27` Implement the ADR-010 isolation mechanism after approval (shared schema + RLS vs schema/database-per-tenant).
 - [ ] `M1-T28` Cross-tenant deny tests for every API, worker, search, cache, queue and object-storage path.
@@ -177,7 +179,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M2-T02` Generate short-lived, single-use enrollment tokens (hash-only storage).
 - [ ] `M2-T03` `POST /api/v1/agents/enroll` with token validation, replay rejection, audit.
 - [ ] `M2-T04` Issue unique agent identity/certificate (dev CA first).
-- [ ] `M2-T05` `POST /api/v1/agents/{id}/heartbeat` with auth + health payload.
+- [ ] `M2-T05` `POST /api/v1/agents/{endpoint_id}/heartbeat` with auth + health payload.
 - [ ] `M2-T06` `POST /api/v1/agents/renew` for certificate renewal.
 - [ ] `M2-T07` Endpoint list/detail API with org/site scoping and last-seen state.
 - [ ] `M2-T08` Revocation API + credential invalidation.
@@ -294,7 +296,7 @@ Each task is sized for roughly 0.5–2 days. Every milestone ends with a review 
 - [ ] `M5-T06` Assignment by org/site/group with staged rollout.
 - [ ] `M5-T07` Acknowledgement tracking and status.
 - [ ] `M5-T08` Rollback to previous signed version.
-- [ ] `M5-T09` Agent: `GET /agents/{id}/policy`, signature verification, apply.
+- [ ] `M5-T09` Agent: `GET /agents/{endpoint_id}/policy`, signature verification, apply.
 - [ ] `M5-T10` Agent: reject unsigned policy and unauthorized rollback; log reason.
 - [ ] `M5-T11` Policy UI: list, edit, version history, assignment, ack status.
 - [ ] `M5-T12` Tests: tampered/unsigned policy rejected; rollback audited.

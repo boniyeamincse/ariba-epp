@@ -45,9 +45,16 @@ Do not disclose cross-tenant record existence in error messages. Common HTTP beh
 
 | Method | Route | Principal | Purpose |
 |---|---|---|---|
-| POST | `/agents/enroll` | One-time enrollment authorization | Enroll agent and issue unique identity |
+| POST | `/organizations` | Platform Super Admin | Onboard new Parent Group (Organization) |
+| GET | `/organizations` | Authenticated user | List authorized Parent Groups |
+| POST | `/organizations/{org_id}/companies` | Group Admin | Onboard subsidiary Company (e.g. Akij Plastic) |
+| GET | `/organizations/{org_id}/companies` | User with Group/Company scope | List subsidiary Companies |
+| POST | `/companies/{company_id}/sites` | Company Admin | Create operating unit/site (Factory, Office, Depot) |
+| GET | `/companies/{company_id}/sites` | User with Company/Site scope | List Sites belonging to a Company |
+| POST | `/sites/{site_id}/enrollment-tokens` | Company / Site Admin | Generate scoped one-time enrollment token |
+| POST | `/agents/enroll` | One-time enrollment authorization | Enroll agent, associate org/comp/site, issue cert |
 | POST | `/agents/renew` | Existing agent identity | Renew credentials |
-| GET | `/agents` | User with endpoint-read scope | List scoped endpoints |
+| GET | `/agents` | User with endpoint-read scope | List scoped endpoints (Group/Company/Site filtered) |
 | GET | `/agents/{endpoint_id}` | User with endpoint-read scope | Endpoint detail |
 | POST | `/agents/{endpoint_id}/heartbeat` | That endpoint agent | Health/last-seen update |
 | POST | `/telemetry/events` | Enrolled agent | Submit bounded event batch |
@@ -66,6 +73,7 @@ Do not disclose cross-tenant record existence in error messages. Common HTTP beh
 | GET | `/inventory/software` | Scoped inventory reader | Software inventory |
 | GET | `/vulnerabilities` | Scoped security reader | Vulnerability findings |
 | POST | `/iocs` | Threat-intel administrator/integration | Import IOC with provenance |
+
 The authoritative alert state machine and allowed transitions are **To confirm** in ADR-013. Candidate states are listed in `PRODUCT-REQUIREMENTS.md`; do not implement alert state mutation until ADR-013 and matching requirements/tasks are approved.
 
 ## 4. Enrollment contract sketch
@@ -86,9 +94,12 @@ Response sketch:
 ```json
 {
   "data": {
-    "endpoint_id": "opaque-id",
+    "endpoint_id": "opaque-endpoint-uuid",
+    "organization_id": "opaque-group-uuid",
+    "company_id": "opaque-company-uuid",
+    "site_id": "opaque-site-uuid",
     "status": "enrolled",
-    "identity_enrollment": "required",
+    "certificate_enrollment": "required",
     "policy_version": 1
   },
   "request_id": "opaque-request-id"
@@ -148,18 +159,20 @@ Request must include `endpoint_id`, supported `action_type`, exact target refere
 
 Response states: `pending_approval`, `queued`, `accepted`, `running`, `succeeded`, `failed`, `rejected`, `expired`, `cancelled`. State transitions, cancellation and approval rules must be frozen before response implementation. Endpoint verifies command signature, expiry, action allowlist and target identity; failure is audited and never reported as success.
 
-## 8. Authorization matrix (minimum)
+## 8. Authorization matrix (minimum baseline)
 
-| Operation | Platform admin | Org admin | Security admin | Analyst L1 | Analyst L2 / responder | Auditor/viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Read endpoint in scope | Yes | Own org | Assigned scope | Assigned scope | Assigned scope | Read-only scope |
-| Enroll/revoke endpoint | Yes | Own org, policy TBD | Explicit permission | No | No by default | No |
-| Create/assign policy | Yes | Policy TBD | Assigned scope | No | No by default | No |
-| Read/triage alert | Yes | Own org | Assigned scope | Yes | Yes | Read-only |
-| Request disruptive action | No implicit grant | No implicit grant | No implicit grant | No | Explicit permission + approval | No |
-| Manage roles/integrations | Yes | Own org policy TBD | No by default | No | No | No |
+For the canonical, granular permission-level mapping, refer to [RBAC & Tenant Permission Matrix](../security/PERMISSION-MATRIX.md).
 
-This matrix is a safe baseline, not a final product-owner role design. Deny by default until approved.
+| Operation | Platform Admin | Group Admin | Company Admin | Site Admin | Security Admin | Group/Co SOC | Auditor/Viewer |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Read endpoint in scope | Global | Own Group | Own Company | Own Site | Assigned scope | Scoped | Read-only scope |
+| Enroll/revoke endpoint | Global | Group/Co scope | Own Company | Own Site | Explicit permission | No | No |
+| Create/assign policy | Global | Group scope | Co scope | No | Assigned scope | No | No |
+| Read/triage alert | No | Own Group | Own Company | No | Assigned scope | Yes | Read-only |
+| Request disruptive action | No | No | No | No | No | L2 Responder only [A] | No |
+| Manage roles/integrations | Global | Own Group | Own Company | No | No by default | No | No |
+
+Enforcement is strictly server-side. Cross-group and cross-company unauthorized requests fail closed (`403 Forbidden` or `404 Not Found`).
 
 ## 9. API acceptance tests
 

@@ -30,7 +30,7 @@ Before pilot, decide:
 - Availability, RPO/RTO, endpoint/EPS limits and data retention.
 - Monitoring, paging/on-call, security incident escalation and log ownership.
 - Agent package distribution, staged deployment rings, rollback and maintenance windows.
-- Data residency, customer export/delete and legal retention.
+- Customer export/delete, legal retention and deletion propagation across stores and backups.
 
 Do not treat rough VM sizes in the architecture blueprint as a purchase or capacity specification; load-test with representative event rates and retention.
 

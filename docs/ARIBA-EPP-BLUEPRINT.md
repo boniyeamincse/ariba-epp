@@ -247,7 +247,7 @@ deployment/           # development and production deployment assets
 
 ## 12. Open decisions
 
-1. Is “Ariba EPP” the final product name, and is the first audience internal SOC users or external customers?
+1. Is “Ariba EPP” the final product name? The first audience is hosted customer organizations per ADR-009; which pilot customers are selected is still To confirm.
 2. Which Windows and Linux versions/distributions must the first pilot support?
 3. Should EPP be a module in the existing Ariba SOC, a separate service, or both over time?
 4. Which current SOC components and interfaces are confirmed available for reuse?

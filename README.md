@@ -17,6 +17,7 @@
 - [Threat Model](docs/security/THREAT-MODEL.md)
 - [Test Strategy](docs/testing/TEST-STRATEGY.md)
 - [Deployment Plan](docs/deployment/DEPLOYMENT-PLAN.md)
+- [ADR Register](docs/decisions/README.md) — decision IDs and status; ADR-009 approves the hosted multi-organization model.
 - [Product Idea (source)](docs/ARIBA-EPP-PRODUCT-IDEA.md) — original product concept supplied by the owner.
 - [Project Task List](docs/PROJECT-TASKS.md) — milestone roadmap, step-by-step tasks, language plan and tracking rules.
 - [Documentation index](docs/README.md).
@@ -28,7 +29,7 @@
 | `apps/web-console/` | Web console (Next.js + TypeScript candidate) | Planned |
 | `apps/api-server/` | Management API (FastAPI candidate, modular monolith) | Planned |
 | `services/` | Domain modules; deployed together as a monolith first | Planned |
-| `agent/` | Go endpoint agent for Windows and Linux | Planned |
+| `agent/` | Go (candidate) endpoint agent for Windows and Linux | Planned |
 | `detection/` | Versioned rules (Sigma/YARA), ATT&CK mapping, rule tests | Planned |
 | `integrations/` | Wazuh, OpenSearch, MISP, ClamAV, Microsoft Defender adapters | Planned |
 | `database/` | PostgreSQL migrations, seeds, schemas | Planned |

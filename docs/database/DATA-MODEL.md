@@ -7,8 +7,8 @@
 
 | Data | Source of truth | Notes |
 |---|---|---|
-| Organizations/sites/users/role assignments | PostgreSQL | Tenant/control-plane data |
-| Endpoint identity, inventory and health | PostgreSQL | Tenant-scoped; heartbeat history retention TBD |
+| Organizations/companies/sites/users/role assignments | PostgreSQL | Multi-tenant, multi-company control-plane data |
+| Endpoint identity, inventory and health | PostgreSQL | Hierarchy-scoped (org/company/site); heartbeat history retention TBD |
 | Policy definitions/versions/assignments | PostgreSQL + signed bundle reference | Never trust unsigned agent-facing policy |
 | Detection-rule metadata and alert workflow | PostgreSQL | Keep rule version and evidence reference |
 | High-volume raw/normalized telemetry | OpenSearch or selected event store | Retention, partition and tenant isolation required |
@@ -16,18 +16,22 @@
 | Cache/temporary coordination | Redis | Not durable source of truth |
 | Credentials/private keys | External secret/certificate service where available | DB stores IDs/hashes/metadata only; never plaintext secrets |
 
-## 2. Logical entities
+## 2. Logical entities (Corporate Group Hierarchy)
 
 ```mermaid
 erDiagram
-    ORGANIZATION ||--o{ SITE : contains
+    ORGANIZATION ||--o{ COMPANY : owns
     ORGANIZATION ||--o{ USER : scopes
+    COMPANY ||--o{ SITE : operates
+    SITE ||--o{ ENDPOINT : hosts
     USER ||--o{ USER_ROLE : receives
     ROLE ||--o{ USER_ROLE : grants
-    ORGANIZATION ||--o{ ENDPOINT : owns
-    SITE ||--o{ ENDPOINT : hosts
+    ORGANIZATION ||--o{ ENDPOINT : rolls_up
+    COMPANY ||--o{ ENDPOINT : scopes
     ENDPOINT ||--o{ AGENT_IDENTITY : authenticates
     ENDPOINT ||--o{ HEARTBEAT : reports
+    ENDPOINT ||--o{ SOFTWARE_INVENTORY : reports
+    ENDPOINT ||--o{ VULNERABILITY_FINDING : affected_by
     ORGANIZATION ||--o{ POLICY : defines
     POLICY ||--o{ POLICY_ASSIGNMENT : assigned
     ENDPOINT ||--o{ POLICY_ASSIGNMENT : receives
@@ -37,6 +41,8 @@ erDiagram
     INCIDENT ||--o{ INCIDENT_LINK : contains
     ENDPOINT ||--o{ RESPONSE_ACTION : targets
     USER ||--o{ RESPONSE_ACTION : requests
+    ENDPOINT ||--o{ QUARANTINE_RECORD : holds
+    ORGANIZATION ||--o{ IOC : owns
     ORGANIZATION ||--o{ AUDIT_EVENT : scopes
 ```
 
@@ -44,14 +50,16 @@ erDiagram
 
 | Entity | Key fields | Required invariants |
 |---|---|---|
-| Organization | ID, name, status, timestamps | Stable tenant boundary |
-| Site | ID, organization ID, name, type | Site belongs to exactly one organization |
-| User | ID, identity-provider subject/email reference, status | Do not store plaintext password; identity provider decision TBD |
-| Role / UserRole | Role key, scope, grantor, time | Server-enforced least privilege; audit grants/revokes |
-| Endpoint | ID, organization/site, hostname, platform, OS/agent version, status, last seen | Every query scoped by organization; hostname uniqueness policy TBD |
+| Organization | ID, code, name, status, timestamps | Stable corporate group / parent tenant boundary (e.g. Akij Group) |
+| Company | ID, organization ID, code, name, industry_type, status | Business entity/subsidiary belonging to exactly one Organization (e.g. Akij Plastic) |
+| Site | ID, organization ID, company_id, code, name, site_type | Operating unit (Factory, Office, Depot, Branch) belonging to one Company |
+| User | ID, email, full_name, password_hash, mfa status | Platform identity; authenticated subject |
+| Role / Permission / UserRole | Role name, permission code, module, user/org/company/site scope, grantor | Hierarchical RBAC: role grants can be scoped at Group, Company, or Site level per [PERMISSION-MATRIX.md](../security/PERMISSION-MATRIX.md) |
+| Endpoint | ID, organization_id, company_id, site_id, hostname, platform, OS/agent version, status, last seen | Denormalized hierarchy IDs for fast multi-level authorization & rollup; unique per (company_id, hostname) |
 | AgentIdentity | Endpoint ID, cert/key reference, serial, issued/expiry/revoked | No reusable fleet credential; secrets not persisted in plaintext |
 | Heartbeat | Endpoint ID, received/reported time, health, agent/policy version | Server timestamp authoritative for received time |
 | SoftwareInventory | Endpoint ID, package identity/version/source/time | Data collection and retention/privacy approval required |
+| VulnerabilityFinding | Endpoint ID, software identity/version, CVE/source ID, severity, status, detected/updated time | Provenance and source timestamp retained; deduplicated per endpoint/software/CVE; never presented as a patch guarantee |
 | Policy / Assignment | Organization ID, version, config hash, signature ref, scope, status | Immutable version record; assignment tracks ack/rejection |
 | DetectionRule | Rule ID/version, severity, platform, required schema, provenance, tests | Disabled until validated; every version traceable |
 | Alert | Tenant, endpoint, rule/version, status, severity, timestamps, evidence refs | State changes and assignment audited |
@@ -61,17 +69,21 @@ erDiagram
 | QuarantineRecord | Endpoint, object reference/hash, status, retention, actor | Object restricted, integrity checked, restore path defined |
 | AuditEvent | Tenant, actor, action, object, time, outcome, request ID | Append-only/tamper-evident design; secrets excluded |
 
-## 4. Tenant isolation rules
+## 4. Multi-Tenant, Multi-Company Isolation Rules
 
-**Approved product model:** centrally hosted multi-organization platform with one organization tenant per customer and multiple sites per organization (ADR-009). **Not yet decided:** concrete database/index/object-store isolation mechanism (ADR-010), hosting region, residency, quotas and retention.
+**Approved product model:** Centrally hosted platform supporting a 4-tier hierarchy: **Platform ➔ Organization (Parent Group) ➔ Company (Business Entity) ➔ Site (Unit/Factory/Office) ➔ Endpoint (Asset)**.
 
-- Every tenant-owned row has a non-null `organization_id` directly or through a verified parent relation.
-- Service authorization uses authenticated principal scope; never trust submitted tenant IDs.
-- Unique constraints include tenant scope when identifiers are not globally unique.
-- Read, update, delete, export, search and async-worker paths all enforce tenant scope.
-- Consider PostgreSQL Row-Level Security as defense in depth; it does not replace service authorization or test coverage.
-- Search indices, object storage paths/metadata, caches and broker messages must carry and validate tenant context.
-- Add cross-tenant negative tests for each API and worker query pattern.
+- Every company belongs to a parent `organization_id`. Every site belongs to a `company_id`.
+- Every endpoint record carries denormalized `organization_id`, `company_id`, and `site_id` for zero-join, high-performance hierarchical querying and isolation.
+- **Hierarchical Authorization:**
+  - `platform_admin`: Cross-organization global oversight.
+  - `group_admin` / `group_soc`: Scoped to parent `organization_id`; can view and roll up all companies within the group.
+  - `company_admin` / `company_soc`: Scoped strictly to `company_id`; cross-company visibility within the same group is denied.
+  - `site_admin`: Scoped strictly to local `site_id` (e.g., Factory 01).
+- Unique constraints are enforced at appropriate boundaries (e.g., `UNIQUE(organization_id, code)` for companies; `UNIQUE(company_id, hostname)` for endpoints).
+- Read, update, delete, search, and response paths enforce hierarchical scoping server-side.
+- Consider PostgreSQL Row-Level Security (RLS) on `organization_id` and `company_id` as defense in depth.
+- Cross-tenant and cross-company negative authorization tests are mandatory on all API routes.
 
 ## 5. Retention and privacy
 
